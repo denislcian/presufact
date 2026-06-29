@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1a365d;
+  --color-primary-light: #2a4a7f;
+  --color-accent: #2563eb;
+  --color-accent-light: #3b82f6;
+  --color-surface: #f8fafc;
+  --color-border: #cbd5e1;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: #f1f5f9;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Cursor pointer on all interactive elements */
+button, a, [role="button"], select, label[class*="cursor"],
+summary, .cursor-pointer, [onclick] {
+  cursor: pointer;
+}
+
+/* Smooth transitions globally */
+button, a, input, select, textarea {
+  transition: all 0.15s ease;
+}
+
+/* Better focus styles */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* Button hover lift effect */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(37, 99, 235, 0.15);
+}
