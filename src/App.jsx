@@ -6,6 +6,7 @@ import InvoiceList from './components/InvoiceList';
 import InvoiceForm from './components/InvoiceForm';
 import EmisorSettings from './components/EmisorSettings';
 import RecoveryBanner from './components/RecoveryBanner';
+import InstallPrompt from './components/InstallPrompt';
 import Onboarding from './components/Onboarding';
 import { isOnboarded, getEmisorSettings } from './db';
 
@@ -39,6 +40,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       <RecoveryBanner />
+      <InstallPrompt />
       {/* Top nav bar */}
       <nav className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">

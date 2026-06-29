@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#1a365d"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded background (full bleed for maskable) -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Document -->
+  <g transform="translate(140 104)">
+    <rect x="0" y="0" width="232" height="304" rx="24" fill="#ffffff"/>
+    <!-- Folded corner accent -->
+    <path d="M176 0 L232 56 L176 56 Z" fill="#dbeafe"/>
+    <!-- Text lines -->
+    <rect x="40" y="92" width="120" height="16" rx="8" fill="#93c5fd"/>
+    <rect x="40" y="130" width="152" height="16" rx="8" fill="#bfdbfe"/>
+    <rect x="40" y="168" width="96" height="16" rx="8" fill="#bfdbfe"/>
+    <!-- Euro / total badge -->
+    <circle cx="166" cy="232" r="40" fill="#22c55e"/>
+    <path d="M178 214 a26 26 0 1 0 0 36 M152 226 h26 M152 238 h22" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>

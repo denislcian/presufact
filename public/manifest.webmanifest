@@ -1,0 +1,26 @@
+{
+  "name": "Presufact · Facturas y Presupuestos",
+  "short_name": "Presufact",
+  "description": "Crea facturas y presupuestos profesionales en PDF. 100% local y privado.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1a365d",
+  "lang": "es",
+  "categories": ["business", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,14 +1,27 @@
 import { useState } from 'react';
-import { FileText, Upload, Check, ArrowRight, Shield } from 'lucide-react';
+import { FileText, Upload, Check, ArrowRight, Shield, FolderCheck, HardDrive } from 'lucide-react';
 import { DEFAULT_EMISOR, saveEmisorSettings } from '../db';
 import { invalidateLogoCache } from '../utils/logoSvg';
+import { pickBackupFolder } from '../utils/backup';
+
+const SUPPORTS_FOLDER = typeof window !== 'undefined' && 'showDirectoryPicker' in window;
 
 export default function Onboarding({ onDone }) {
   const [step, setStep] = useState(1);
   const [emisor, setEmisor] = useState({ ...DEFAULT_EMISOR });
   const [saving, setSaving] = useState(false);
+  const [backupFolder, setBackupFolder] = useState(null);
 
   const update = (k, v) => setEmisor(prev => ({ ...prev, [k]: v }));
+
+  const chooseFolder = async () => {
+    try {
+      const name = await pickBackupFolder();
+      setBackupFolder(name);
+    } catch (e) {
+      if (e.name !== 'AbortError') alert('No se pudo elegir la carpeta: ' + e.message);
+    }
+  };
 
   const handleLogo = (e) => {
     const file = e.target.files?.[0];
@@ -133,9 +146,32 @@ export default function Onboarding({ onDone }) {
                   <p className="text-xs text-gray-400 mt-1">Se añade automaticamente a tus facturas nuevas.</p>
                 </div>
 
+                {/* Copia de seguridad en carpeta del disco */}
+                {SUPPORTS_FOLDER && (
+                  <div className="border border-emerald-200 bg-emerald-50/60 rounded-xl p-4">
+                    <div className="flex items-start gap-2 mb-2">
+                      <HardDrive size={16} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-emerald-800">Protege tus datos (recomendado)</p>
+                        <p className="text-xs text-emerald-700 mt-0.5">Elige una carpeta y guardaremos una copia de cada factura ahi automaticamente. Asi no perderas nada aunque borres el navegador.</p>
+                      </div>
+                    </div>
+                    {backupFolder ? (
+                      <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium mt-2">
+                        <FolderCheck size={16} /> Guardando en: {backupFolder}
+                      </div>
+                    ) : (
+                      <button onClick={chooseFolder}
+                        className="mt-1 w-full px-3 py-2 bg-white border border-emerald-300 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 transition">
+                        Elegir carpeta de copias
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg p-3">
                   <Shield size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-blue-700">Tus datos se guardan solo en este navegador. No se envia nada a ningun servidor.</p>
+                  <p className="text-xs text-blue-700">Tus datos se guardan solo en tu dispositivo. No se envia nada a ningun servidor.</p>
                 </div>
               </div>
 

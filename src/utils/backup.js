@@ -1,8 +1,8 @@
 import { db } from '../db';
 
-const LS_KEY = 'facturas-backup';
-const LS_DATE_KEY = 'facturas-backup-date';
-const LS_HISTORY_PREFIX = 'facturas-backup-h'; // h1..h5 rotating history
+const LS_KEY = 'presufact-backup';
+const LS_DATE_KEY = 'presufact-backup-date';
+const LS_HISTORY_PREFIX = 'presufact-backup-h'; // h1..h5 rotating history
 const HISTORY_SLOTS = 5;
 
 export async function exportAllData() {
