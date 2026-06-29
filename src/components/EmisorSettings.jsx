@@ -101,7 +101,7 @@ export default function EmisorSettings() {
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="p-2 hover:bg-gray-200 rounded-lg transition"><ArrowLeft size={20} /></button>
+          <button onClick={() => navigate('/app')} className="p-2 hover:bg-gray-200 rounded-lg transition"><ArrowLeft size={20} /></button>
           <h1 className="text-2xl font-bold text-gray-800">Ajustes</h1>
         </div>
         <div className="flex items-center gap-2">

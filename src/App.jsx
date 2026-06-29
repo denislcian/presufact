@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Outlet } from 'react-router-dom';
 import { FileText } from 'lucide-react';
+import LandingPage from './pages/LandingPage';
 import HomePage from './components/HomePage';
 import InvoiceList from './components/InvoiceList';
 import InvoiceForm from './components/InvoiceForm';
@@ -10,10 +11,12 @@ import InstallPrompt from './components/InstallPrompt';
 import Onboarding from './components/Onboarding';
 import { isOnboarded, getEmisorSettings } from './db';
 
-export default function App() {
+// Layout for the application area (everything under /app, /facturas, etc.)
+// Handles first-run onboarding and renders the app nav + footer around the routes.
+function AppLayout() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
-  const [onboarded, setOnboarded] = useState(true);
+  const [onboarded, setOnboarded] = useState(false);
   const [emisor, setEmisor] = useState(null);
 
   const loadEmisor = async () => {
@@ -44,7 +47,7 @@ export default function App() {
       {/* Top nav bar */}
       <nav className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="flex items-center gap-2 hover:opacity-80 transition">
+          <button onClick={() => navigate('/app')} className="flex items-center gap-2 hover:opacity-80 transition">
             {emisor?.logo ? (
               <img src={emisor.logo} alt="Logo" className="h-8 max-w-[140px] object-contain" />
             ) : (
@@ -61,19 +64,7 @@ export default function App() {
       </nav>
 
       <main className="px-4 py-6">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          {/* Facturas */}
-          <Route path="/facturas" element={<InvoiceList docType="factura" />} />
-          <Route path="/facturas/nueva" element={<InvoiceForm docType="factura" />} />
-          <Route path="/facturas/editar/:id" element={<InvoiceForm docType="factura" />} />
-          {/* Presupuestos */}
-          <Route path="/presupuestos" element={<InvoiceList docType="presupuesto" />} />
-          <Route path="/presupuestos/nuevo" element={<InvoiceForm docType="presupuesto" />} />
-          <Route path="/presupuestos/editar/:id" element={<InvoiceForm docType="presupuesto" />} />
-          {/* Ajustes */}
-          <Route path="/ajustes" element={<EmisorSettings />} />
-        </Routes>
+        <Outlet />
       </main>
 
       {/* Footer legal */}
@@ -84,5 +75,26 @@ export default function App() {
         </p>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      {/* Public landing */}
+      <Route path="/" element={<LandingPage />} />
+
+      {/* Application area (onboarding-gated) */}
+      <Route element={<AppLayout />}>
+        <Route path="/app" element={<HomePage />} />
+        <Route path="/facturas" element={<InvoiceList docType="factura" />} />
+        <Route path="/facturas/nueva" element={<InvoiceForm docType="factura" />} />
+        <Route path="/facturas/editar/:id" element={<InvoiceForm docType="factura" />} />
+        <Route path="/presupuestos" element={<InvoiceList docType="presupuesto" />} />
+        <Route path="/presupuestos/nuevo" element={<InvoiceForm docType="presupuesto" />} />
+        <Route path="/presupuestos/editar/:id" element={<InvoiceForm docType="presupuesto" />} />
+        <Route path="/ajustes" element={<EmisorSettings />} />
+      </Route>
+    </Routes>
   );
 }
