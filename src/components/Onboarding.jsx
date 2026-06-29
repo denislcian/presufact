@@ -40,7 +40,7 @@ export default function Onboarding({ onDone }) {
             <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
               <FileText className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-extrabold text-gray-800">Facturalia</span>
+            <span className="text-2xl font-extrabold text-gray-800">Presufact</span>
           </div>
           <p className="text-gray-500 text-sm">Facturas y presupuestos profesionales en tu navegador</p>
         </div>

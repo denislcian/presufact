@@ -20,7 +20,7 @@ export default function HomePage() {
     <div className="max-w-4xl mx-auto mt-8">
       {/* Header */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">{companyName || 'Facturalia'}</h1>
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">{companyName || 'Presufact'}</h1>
         <p className="text-gray-500 text-lg">Facturas y presupuestos profesionales</p>
         <p className="text-xs text-gray-400 mt-2">Todos los datos se guardan en tu navegador. No se envia nada a ningun servidor.</p>
       </div>

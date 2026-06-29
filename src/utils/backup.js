@@ -81,7 +81,7 @@ export async function pickBackupFolder() {
   if (!window.showDirectoryPicker) {
     throw new Error('Tu navegador no soporta guardado en carpeta. Usa Chrome, Edge u Opera.');
   }
-  const handle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'facturalia-backup' });
+  const handle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'presufact-backup' });
   await db.settings.put({ key: 'backupDirHandle', value: handle });
   dirHandleCache = handle;
   return handle.name;
@@ -132,7 +132,7 @@ async function writeFileBackup(data) {
     // Anti-data-loss guard for file too
     if (countDocs(data) === 0) {
       try {
-        const existing = await handle.getFileHandle('facturalia-backup-latest.json');
+        const existing = await handle.getFileHandle('presufact-backup-latest.json');
         const file = await existing.getFile();
         const old = JSON.parse(await file.text());
         if (countDocs(old) > 0) {
@@ -142,13 +142,13 @@ async function writeFileBackup(data) {
       } catch { /* no existing file - ok to write */ }
     }
 
-    const latest = await handle.getFileHandle('facturalia-backup-latest.json', { create: true });
+    const latest = await handle.getFileHandle('presufact-backup-latest.json', { create: true });
     let w = await latest.createWritable();
     await w.write(json);
     await w.close();
 
     const dateStr = new Date().toISOString().split('T')[0];
-    const daily = await handle.getFileHandle(`facturalia-backup-${dateStr}.json`, { create: true });
+    const daily = await handle.getFileHandle(`presufact-backup-${dateStr}.json`, { create: true });
     w = await daily.createWritable();
     await w.write(json);
     await w.close();
@@ -180,7 +180,7 @@ export async function downloadBackup() {
   const a = document.createElement('a');
   const date = new Date().toISOString().split('T')[0];
   a.href = url;
-  a.download = `facturalia-backup-${date}.json`;
+  a.download = `presufact-backup-${date}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -266,7 +266,7 @@ export async function restoreFromBackupFolder() {
   const handle = await getDirHandle();
   if (!handle) throw new Error('No hay carpeta de backup configurada');
   if (!(await ensurePermission(handle))) throw new Error('Sin permiso para leer la carpeta');
-  const fileHandle = await handle.getFileHandle('facturalia-backup-latest.json');
+  const fileHandle = await handle.getFileHandle('presufact-backup-latest.json');
   const file = await fileHandle.getFile();
   return importBackup(file);
 }

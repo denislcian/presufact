@@ -34,7 +34,7 @@ export default function App() {
     return <Onboarding onDone={loadEmisor} />;
   }
 
-  const companyName = emisor?.nombre || 'Facturalia';
+  const companyName = emisor?.nombre || 'Presufact';
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -54,7 +54,7 @@ export default function App() {
               </>
             )}
           </button>
-          <span className="text-xs text-gray-400 ml-2 hidden sm:inline">Facturalia · gestor de facturas y presupuestos</span>
+          <span className="text-xs text-gray-400 ml-2 hidden sm:inline">Presufact · gestor de facturas y presupuestos</span>
         </div>
       </nav>
 
@@ -77,7 +77,7 @@ export default function App() {
       {/* Footer legal */}
       <footer className="max-w-6xl mx-auto px-4 py-6 mt-4 text-center">
         <p className="text-xs text-gray-400">
-          Facturalia genera documentos en formato borrador/proforma. Para facturación oficial verifica los
+          Presufact genera documentos en formato borrador/proforma. Para facturación oficial verifica los
           requisitos vigentes (Verifactu / factura electrónica). Tus datos se guardan localmente en tu navegador.
         </p>
       </footer>
