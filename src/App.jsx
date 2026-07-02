@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, Outlet, Navigate } from 'react-router-dom';
-import { FileText } from 'lucide-react';
+import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation } from 'react-router-dom';
+import { FileText, Receipt, ClipboardList, Settings, Home } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import HomePage from './components/HomePage';
 import InvoiceList from './components/InvoiceList';
@@ -15,6 +15,7 @@ import { isOnboarded, getEmisorSettings } from './db';
 // Handles first-run onboarding and renders the app nav + footer around the routes.
 function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [ready, setReady] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
   const [emisor, setEmisor] = useState(null);
@@ -26,7 +27,8 @@ function AppLayout() {
     setReady(true);
   };
 
-  useEffect(() => { loadEmisor(); }, []);
+  // Recargar al cambiar de ruta para reflejar cambios hechos en Ajustes (nombre, logo)
+  useEffect(() => { loadEmisor(); }, [location.pathname]);
 
   if (!ready) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -46,8 +48,8 @@ function AppLayout() {
       <InstallPrompt />
       {/* Top nav bar */}
       <nav className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate('/app')} className="flex items-center gap-2 hover:opacity-80 transition">
+        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-2">
+          <button onClick={() => navigate('/app')} className="flex items-center gap-2 hover:opacity-80 transition mr-3">
             {emisor?.logo ? (
               <img src={emisor.logo} alt="Logo" className="h-8 max-w-[140px] object-contain" />
             ) : (
@@ -55,11 +57,37 @@ function AppLayout() {
                 <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
                   <FileText className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-800">{companyName}</span>
+                <span className="text-lg font-bold text-gray-800 hidden sm:inline">{companyName}</span>
               </>
             )}
           </button>
-          <span className="text-xs text-gray-400 ml-2 hidden sm:inline">Presufact · gestor de facturas y presupuestos</span>
+
+          {[
+            { to: '/app', label: 'Inicio', icon: Home, end: true },
+            { to: '/facturas', label: 'Facturas', icon: Receipt },
+            { to: '/presupuestos', label: 'Presupuestos', icon: ClipboardList },
+          ].map(({ to, label, icon: Icon, end }) => (
+            <NavLink key={to} to={to} end={end}
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition ${
+                  isActive ? 'bg-accent/10 text-accent font-semibold' : 'text-gray-600 hover:bg-gray-100'
+                }`}>
+              <Icon size={16} />
+              <span className="hidden md:inline">{label}</span>
+            </NavLink>
+          ))}
+
+          <div className="ml-auto">
+            <NavLink to="/ajustes"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition ${
+                  isActive ? 'bg-accent/10 text-accent font-semibold' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              title="Datos de tu empresa, logo y copias de seguridad">
+              <Settings size={16} />
+              <span className="hidden md:inline">Mi empresa</span>
+            </NavLink>
+          </div>
         </div>
       </nav>
 

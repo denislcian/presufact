@@ -174,11 +174,37 @@ export default function EmisorSettings() {
             <label className={labelClass}>Web</label>
             <input className={inputClass} value={emisor.web} onChange={e => update('web', e.target.value)} />
           </div>
+          <div>
+            <label className={labelClass}>Telefono</label>
+            <input className={inputClass} value={emisor.telefono || ''} onChange={e => update('telefono', e.target.value)} placeholder="600 000 000" />
+          </div>
+          <div>
+            <label className={labelClass}>Email</label>
+            <input className={inputClass} type="email" value={emisor.email || ''} onChange={e => update('email', e.target.value)} placeholder="hola@tuempresa.es" />
+          </div>
           <div className="col-span-2">
             <label className={labelClass}>IBAN / Cuenta bancaria</label>
             <input className={inputClass + ' font-mono'} value={emisor.iban || ''} onChange={e => update('iban', e.target.value)}
               placeholder="ES02 0049 3586 1921 1403 5991" />
             <p className="text-xs text-gray-400 mt-1">Se rellena automaticamente en las observaciones y vencimientos de cada nueva factura</p>
+          </div>
+
+          {/* Color de marca para los PDF */}
+          <div className="col-span-2 border-t pt-4">
+            <label className={labelClass}>Color de marca (PDF)</label>
+            <div className="flex items-center gap-3 flex-wrap">
+              <input type="color" value={emisor.colorMarca || '#1a365d'}
+                onChange={e => update('colorMarca', e.target.value)}
+                className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer p-0.5 bg-white" />
+              {['#1a365d', '#0f766e', '#7c2d12', '#581c87', '#166534', '#b91c1c', '#334155', '#000000'].map(c => (
+                <button key={c} onClick={() => update('colorMarca', c)}
+                  className={`w-7 h-7 rounded-full border-2 transition ${
+                    (emisor.colorMarca || '#1a365d').toLowerCase() === c ? 'border-gray-800 scale-110' : 'border-transparent hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: c }} title={c} />
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Es el color de los titulos, lineas y el bloque del total en tus facturas y presupuestos en PDF.</p>
           </div>
         </div>
       </div>

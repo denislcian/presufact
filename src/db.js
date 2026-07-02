@@ -62,10 +62,13 @@ export const DEFAULT_EMISOR = {
   cp: '',
   ciudad: '',
   provincia: '',
+  telefono: '',
+  email: '',
   web: '',
   codigoBarras: '',
   iban: '',
-  logo: null
+  logo: null,
+  colorMarca: '#1a365d' // color de acento de los PDF
 };
 
 export function getDefaultDocument(docType = 'factura', emisor) {
