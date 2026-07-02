@@ -727,14 +727,29 @@ export default function InvoiceForm({ docType = 'factura' }) {
 
               <div className="grid grid-cols-2 gap-6">
                 {/* IVA selector */}
-                <div>
-                  <label className={labelClass}>Tipo de IVA</label>
-                  <select className={inputClass} value={ivaConfig.tipo}
-                    onChange={e => updateField('iva.tipo', parseInt(e.target.value))}>
-                    {IVA_OPTIONS.map(rate => (
-                      <option key={rate} value={rate}>{rate}%{rate === 0 ? ' (Exento)' : ''}</option>
-                    ))}
-                  </select>
+                <div className="space-y-4">
+                  <div>
+                    <label className={labelClass}>Tipo de IVA</label>
+                    <select className={inputClass} value={ivaConfig.tipo}
+                      onChange={e => updateField('iva.tipo', parseInt(e.target.value))}>
+                      {IVA_OPTIONS.map(rate => (
+                        <option key={rate} value={rate}>{rate}%{rate === 0 ? ' (Exento)' : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Retencion IRPF</label>
+                    <select className={inputClass} value={ivaConfig.irpf || 0}
+                      onChange={e => updateField('iva.irpf', parseInt(e.target.value))}>
+                      <option value={0}>Sin retencion</option>
+                      <option value={7}>7% (nuevos autonomos)</option>
+                      <option value={15}>15% (general autonomos)</option>
+                      <option value={19}>19% (alquileres)</option>
+                      <option value={1}>1%</option>
+                      <option value={2}>2%</option>
+                    </select>
+                    <p className="text-xs text-gray-400 mt-1">Se resta del total. Aplica si eres autonomo facturando a empresas o profesionales.</p>
+                  </div>
                 </div>
                 <div className="space-y-3 pt-6">
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -786,6 +801,12 @@ export default function InvoiceForm({ docType = 'factura' }) {
                     <div className="flex justify-between">
                       <span className="text-gray-600">R.E. ({tax.reRate}%)</span>
                       <span className="font-mono font-medium">{formatNumber(tax.reAmount)} &euro;</span>
+                    </div>
+                  )}
+                  {tax.hasIRPF && (
+                    <div className="flex justify-between text-red-600">
+                      <span>IRPF ({tax.irpfRate}%)</span>
+                      <span className="font-mono">-{formatNumber(tax.irpfAmount)} &euro;</span>
                     </div>
                   )}
                   <div className="border-t border-gray-300 pt-3 flex justify-between">

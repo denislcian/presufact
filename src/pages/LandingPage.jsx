@@ -9,7 +9,7 @@ export default function LandingPage() {
   const goApp = () => navigate('/app');
 
   const features = [
-    { icon: FileText, title: 'Facturas en PDF', desc: 'Crea facturas con tu logo, líneas, IVA y descuentos. Descarga el PDF profesional al instante.' },
+    { icon: FileText, title: 'Facturas en PDF', desc: 'Crea facturas con tu logo, IVA, retención de IRPF y descuentos. Descarga el PDF profesional al instante.' },
     { icon: ClipboardList, title: 'Presupuestos', desc: 'Genera presupuestos con condiciones, validez y firma. Conviértelos en factura con un clic.' },
     { icon: Lock, title: '100% privado', desc: 'Tus datos se guardan en tu dispositivo, nunca en la nube. Sin registro, sin email, sin rastreo.' },
     { icon: MonitorSmartphone, title: 'Instálala como app', desc: 'Tenla en tu escritorio o móvil como un programa. Funciona incluso sin conexión a internet.' },
@@ -26,7 +26,8 @@ export default function LandingPage() {
   const faqs = [
     { q: '¿Es gratis?', a: 'Sí, completamente gratis y sin límites. No necesitas tarjeta ni registro.' },
     { q: '¿Dónde se guardan mis facturas?', a: 'En tu propio navegador/dispositivo. No subimos nada a ningún servidor. Puedes elegir además una carpeta de tu disco para copias de seguridad automáticas.' },
-    { q: '¿Sirve para presentar a Hacienda?', a: 'Presufact genera documentos en formato borrador/proforma, ideales para enviar a clientes. Para facturación oficial verifica los requisitos vigentes (Verifactu / factura electrónica) con tu gestor.' },
+    { q: '¿Calcula IVA e IRPF?', a: 'Sí. IVA (0/4/10/21%), retención de IRPF (7%, 15%, 19%...), recargo de equivalencia e inversión del sujeto pasivo. Todo se calcula automáticamente.' },
+    { q: '¿Y lo de Verifactu? ¿Puedo usar Presufact?', a: 'Presufact genera presupuestos, proformas y borradores de factura en PDF, documentos que NO están sujetos a Verifactu. La obligación de usar software certificado Verifactu para facturas oficiales entra en vigor el 1/1/2027 para sociedades y el 1/7/2027 para autónomos. Para tu facturación oficial consulta con tu gestor.' },
     { q: '¿Funciona sin internet?', a: 'Sí. Una vez abierta (o instalada como app), funciona sin conexión.' },
     { q: '¿Puedo poner mi logo?', a: 'Claro. Súbelo en la configuración y aparecerá en la cabecera de todas tus facturas y presupuestos.' },
   ];
@@ -54,10 +55,10 @@ export default function LandingPage() {
           <ShieldCheck size={14} /> Gratis · Sin registro · 100% privado
         </div>
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight max-w-3xl mx-auto leading-tight">
-          Facturas y presupuestos <span className="text-accent">profesionales</span>, en segundos
+          Haz facturas y presupuestos en PDF <span className="text-accent">gratis y sin registro</span>
         </h1>
         <p className="mt-5 text-lg text-gray-500 max-w-2xl mx-auto">
-          Crea facturas y presupuestos en PDF con tu logo, sin registrarte y sin que tus datos salgan de tu dispositivo. Gratis para siempre.
+          Con IVA, IRPF y tu logo. Sin límites de documentos y sin subir tus datos a la nube: todo se guarda en tu dispositivo. Gratis para siempre.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button onClick={goApp} className="w-full sm:w-auto px-7 py-3.5 bg-accent hover:bg-accent-light text-white rounded-xl font-semibold transition flex items-center justify-center gap-2 shadow-sm">

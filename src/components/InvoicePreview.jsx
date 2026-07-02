@@ -259,6 +259,12 @@ export default function InvoicePreview({ invoice }) {
                 <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>{formatNumber(tax.reAmount)}</span>
               </div>
             )}
+            {tax.hasIRPF && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5mm', fontSize: '8.5px', color: '#dc2626' }}>
+                <span>IRPF ({tax.irpfRate}%)</span>
+                <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>-{formatNumber(tax.irpfAmount)}</span>
+              </div>
+            )}
           </div>
           {/* Total box */}
           {(() => {

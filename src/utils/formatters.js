@@ -77,6 +77,8 @@ export function getUnitLabel(unidad) {
 // IVA and Recargo de Equivalencia rates
 export const IVA_OPTIONS = [0, 4, 10, 21];
 export const RE_RATES = { 21: 5.2, 10: 1.4, 4: 0.5, 0: 0 };
+// IRPF (retencion) habitual en España: 15% general, 7% nuevos autonomos, 19% alquileres
+export const IRPF_OPTIONS = [0, 1, 2, 7, 15, 19];
 
 export function calcIVA(base, tipoIVA) {
   return base * (tipoIVA / 100);
@@ -115,6 +117,15 @@ export function calcInvoiceTaxBreakdown(lineas, iva, deducciones) {
   const isISP = ivaConfig.inversionSujetoPasivo;
   const ivaAmount = isISP ? 0 : calcIVA(base, ivaConfig.tipo);
   const reAmount = (!isISP && ivaConfig.recargoEquivalencia) ? calcRE(base, ivaConfig.tipo) : 0;
-  const total = base + ivaAmount + reAmount;
-  return { baseLineas, totalDeducciones, base, ivaRate: ivaConfig.tipo, ivaAmount, reRate: RE_RATES[ivaConfig.tipo] || 0, reAmount, isISP, hasRE: ivaConfig.recargoEquivalencia, total };
+  // IRPF (retencion): se resta del total. Habitual en autonomos que facturan a empresas.
+  const irpfRate = parseFloat(ivaConfig.irpf) || 0;
+  const irpfAmount = base > 0 ? base * (irpfRate / 100) : 0;
+  const total = base + ivaAmount + reAmount - irpfAmount;
+  return {
+    baseLineas, totalDeducciones, base,
+    ivaRate: ivaConfig.tipo, ivaAmount,
+    reRate: RE_RATES[ivaConfig.tipo] || 0, reAmount,
+    irpfRate, irpfAmount, hasIRPF: irpfRate > 0,
+    isISP, hasRE: ivaConfig.recargoEquivalencia, total
+  };
 }

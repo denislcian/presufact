@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Copy, Edit3, FileText, Download, Calendar, Euro, Upload, ArrowRightCircle, FileSpreadsheet, Clock } from 'lucide-react';
+import { Plus, Search, Trash2, Copy, Edit3, FileText, Download, Calendar, Euro, Upload, ArrowRightCircle, FileSpreadsheet, Clock, Share2 } from 'lucide-react';
 import ImportInvoice from './ImportInvoice';
 import { getAllDocuments, deleteDocument, duplicateDocument, DOC_TYPES, getNextNumber, saveDocument, ESTADOS, cycleEstado } from '../db';
 import { formatNumber, formatDateES, calcInvoiceTaxBreakdown } from '../utils/formatters';
-import { generatePDF } from '../utils/pdfGenerator';
+import { generatePDF, generatePDFFile } from '../utils/pdfGenerator';
 
 // Total real del documento: lineas - deducciones + IVA
 function docTotal(inv) {
@@ -14,7 +14,15 @@ function docTotal(inv) {
 
 function getEstado(docType, inv) {
   const list = ESTADOS[docType];
-  return list.find(e => e.key === (inv.estado || 'pendiente')) || list[0];
+  const estado = list.find(e => e.key === (inv.estado || 'pendiente')) || list[0];
+  // Facturas pendientes con vencimiento pasado se muestran como "Vencida" (rojo)
+  if (docType === 'factura' && estado.key === 'pendiente') {
+    const venc = inv.vencimientos?.[0]?.fecha;
+    if (venc && venc < new Date().toISOString().split('T')[0]) {
+      return { ...estado, label: 'Vencida', classes: 'bg-red-100 text-red-700' };
+    }
+  }
+  return estado;
 }
 
 export default function InvoiceList({ docType = 'factura' }) {
@@ -63,6 +71,29 @@ export default function InvoiceList({ docType = 'factura' }) {
 
   const handleDownloadPDF = (inv) => {
     generatePDF(inv);
+  };
+
+  // Compartir: Web Share con PDF adjunto si el dispositivo lo soporta (movil),
+  // si no, descarga el PDF y abre WhatsApp Web con un mensaje listo.
+  const handleShare = async (inv) => {
+    const total = formatNumber(docTotal(inv));
+    const texto = `${config.label} ${inv.invoiceNumber} de ${inv.emisor?.nombre || ''} — Total: ${total} EUR`;
+    try {
+      const file = await generatePDFFile(inv);
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: texto, text: texto });
+        return;
+      }
+      // Fallback: descargar + abrir WhatsApp con el texto (el usuario adjunta el PDF descargado)
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url; a.download = file.name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      window.open(`https://wa.me/?text=${encodeURIComponent(texto + ' (PDF adjunto)')}`, '_blank');
+    } catch (e) {
+      if (e.name !== 'AbortError') console.warn('Share fallo:', e);
+    }
   };
 
   const handleCycleEstado = async (id) => {
@@ -280,6 +311,10 @@ export default function InvoiceList({ docType = 'factura' }) {
                         <button onClick={() => handleDownloadPDF(inv)}
                           className="p-2 hover:bg-green-50 rounded-lg transition cursor-pointer" title="Descargar PDF">
                           <Download size={16} className="text-gray-400 hover:text-green-600" />
+                        </button>
+                        <button onClick={() => handleShare(inv)}
+                          className="p-2 hover:bg-emerald-50 rounded-lg transition cursor-pointer" title="Compartir (WhatsApp / email)">
+                          <Share2 size={16} className="text-gray-400 hover:text-emerald-600" />
                         </button>
                         <button onClick={() => handleDuplicate(inv.id)}
                           className="p-2 hover:bg-purple-50 rounded-lg transition cursor-pointer" title="Duplicar">

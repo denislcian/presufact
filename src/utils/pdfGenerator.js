@@ -3,7 +3,9 @@ import 'jspdf-autotable';
 import { formatNumber, calcLineSubtotal, calcLineTotal, formatDateES, getUnitLabel, calcInvoiceTaxBreakdown, parseSpanishNumber } from './formatters';
 import { getLogoBase64 } from './logoSvg';
 
-export async function generatePDF(invoice) {
+// Builds the jsPDF document and returns { doc, filename }.
+// Use generatePDF() to download it or generatePDFFile() to get a File (for sharing).
+async function buildPDF(invoice) {
   const logoData = await getLogoBase64(invoice.emisor);
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = 210;
@@ -350,6 +352,7 @@ export async function generatePDF(invoice) {
   let numRows = 2; // Base Imponible + IVA
   if (tax.totalDeducciones > 0) numRows += 2; // Subtotal + Deducciones
   if (tax.hasRE && !tax.isISP) numRows += 1; // RE
+  if (tax.hasIRPF) numRows += 1; // IRPF
   const summaryBoxH = numRows * ROW_H + 3; // padding top/bottom
 
   doc.setDrawColor(...borderColor);
@@ -382,6 +385,10 @@ export async function generatePDF(invoice) {
   rowOffset += ROW_H;
   if (tax.hasRE && !tax.isISP) {
     drawSummaryRow(`R.E. (${tax.reRate}%)`, tax.reAmount, rowOffset);
+    rowOffset += ROW_H;
+  }
+  if (tax.hasIRPF) {
+    drawSummaryRow(`IRPF (${tax.irpfRate}%)`, -tax.irpfAmount, rowOffset, [220, 38, 38]);
     rowOffset += ROW_H;
   }
 
@@ -548,5 +555,19 @@ export async function generatePDF(invoice) {
   }
 
   const docLabel = invoice.documentType === 'Presupuesto' ? 'Presupuesto' : 'Factura';
-  doc.save(`${docLabel}_${invoice.invoiceNumber || 'nuevo'}.pdf`);
+  const filename = `${docLabel}_${invoice.invoiceNumber || 'nuevo'}.pdf`;
+  return { doc, filename };
+}
+
+// Download the PDF
+export async function generatePDF(invoice) {
+  const { doc, filename } = await buildPDF(invoice);
+  doc.save(filename);
+}
+
+// Get the PDF as a File object (for Web Share API / attachments)
+export async function generatePDFFile(invoice) {
+  const { doc, filename } = await buildPDF(invoice);
+  const blob = doc.output('blob');
+  return new File([blob], filename, { type: 'application/pdf' });
 }

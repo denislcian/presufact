@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, Outlet } from 'react-router-dom';
+import { Routes, Route, useNavigate, Outlet, Navigate } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import HomePage from './components/HomePage';
@@ -70,8 +70,9 @@ function AppLayout() {
       {/* Footer legal */}
       <footer className="max-w-6xl mx-auto px-4 py-6 mt-4 text-center">
         <p className="text-xs text-gray-400">
-          Presufact genera documentos en formato borrador/proforma. Para facturación oficial verifica los
-          requisitos vigentes (Verifactu / factura electrónica). Tus datos se guardan localmente en tu navegador.
+          Presufact genera presupuestos, proformas y borradores de factura en PDF (documentos no sujetos a Verifactu).
+          Para tu facturación oficial, la obligación de software certificado Verifactu entra en vigor el 1/1/2027 (sociedades)
+          y el 1/7/2027 (autónomos) — consulta con tu gestor. Tus datos se guardan localmente en tu dispositivo.
         </p>
       </footer>
     </div>
@@ -95,6 +96,9 @@ export default function App() {
         <Route path="/presupuestos/editar/:id" element={<InvoiceForm docType="presupuesto" />} />
         <Route path="/ajustes" element={<EmisorSettings />} />
       </Route>
+
+      {/* Cualquier otra ruta vuelve a la landing */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
