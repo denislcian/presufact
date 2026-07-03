@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileText, ClipboardList, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { extractTextFromPDF, parseInvoiceText } from '../utils/pdfImporter';
+import { importInvoiceFromPDF } from '../utils/pdfImporter';
 import { saveDocument, getEmisorSettings, DOC_TYPES } from '../db';
 
 export default function ImportInvoice({ onClose, defaultDocType = 'factura' }) {
@@ -22,8 +22,7 @@ export default function ImportInvoice({ onClose, defaultDocType = 'factura' }) {
 
     for (const file of pdfFiles) {
       try {
-        const text = await extractTextFromPDF(file);
-        const invoice = parseInvoiceText(text);
+        const { invoice, rawText: text } = await importInvoiceFromPDF(file, emisor);
         invoice.emisor = { ...emisor };
         // Use detected type, falling back to default
         const detectedType = invoice._detectedType || defaultDocType;

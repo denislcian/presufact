@@ -82,32 +82,57 @@ export default function LandingPage() {
               <span className="w-3 h-3 rounded-full bg-amber-400"></span>
               <span className="w-3 h-3 rounded-full bg-emerald-400"></span>
             </div>
-            <div className="p-6 text-left">
-              <div className="flex justify-between items-start mb-6">
+            <div className="p-6 sm:p-8 text-left">
+              {/* Espejo del PDF real: estilo "suizo editorial" */}
+              <div className="h-1 bg-accent mb-5" />
+              <div className="flex justify-between items-start">
                 <div>
-                  <div className="text-lg font-extrabold text-accent">TU EMPRESA, S.L.</div>
-                  <div className="text-xs text-gray-400">NIF: B12345678 · Calle Mayor 1</div>
+                  <div className="text-lg font-extrabold text-gray-900">TU EMPRESA, S.L.</div>
+                  <div className="text-[11px] text-gray-400 mt-1 leading-relaxed">NIF B12345678 · 600 000 000<br />Calle Mayor 1, 33001 Oviedo</div>
                 </div>
-                <div className="border-2 border-accent rounded-lg px-4 py-2 text-xs">
-                  <div className="font-bold">CLIENTE EJEMPLO</div>
-                  <div className="text-gray-400">NIF: B87654321</div>
+                <div className="text-right">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Factura</div>
+                  <div className="text-2xl font-extrabold text-gray-900 leading-tight">2026-0042</div>
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1.5">Fecha</div>
+                  <div className="text-xs text-gray-800">02/07/2026</div>
                 </div>
               </div>
-              <div className="rounded-lg overflow-hidden border border-gray-100">
-                <div className="grid grid-cols-4 bg-accent text-white text-[10px] font-semibold uppercase px-3 py-2">
-                  <span className="col-span-2">Descripción</span><span className="text-right">Cant.</span><span className="text-right">Total</span>
+              <div className="border-t-2 border-accent mt-4" />
+              <div className="border-t border-gray-200 mt-[2px] mb-5" />
+
+              <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Facturar a</div>
+              <div className="font-bold text-sm text-gray-900 mt-0.5">CLIENTE EJEMPLO S.L.</div>
+              <div className="text-[11px] text-gray-500">NIF: B87654321</div>
+
+              <div className="mt-6">
+                <div className="grid grid-cols-5 text-[9px] font-bold uppercase tracking-widest text-gray-400 pb-1.5">
+                  <span className="col-span-2">Concepto</span><span className="text-right">Cantidad</span><span className="text-right">Precio</span><span className="text-right">Importe</span>
                 </div>
-                {[['Diseño de marca', '1', '800,00'], ['Desarrollo web', '1', '1.500,00'], ['Mantenimiento', '12', '600,00']].map((r, i) => (
-                  <div key={i} className={`grid grid-cols-4 text-xs px-3 py-2 ${i % 2 ? 'bg-gray-50' : 'bg-white'}`}>
-                    <span className="col-span-2 text-gray-700">{r[0]}</span><span className="text-right font-mono text-gray-500">{r[1]}</span><span className="text-right font-mono font-semibold">{r[2]}</span>
+                <div className="border-t-2 border-gray-900" />
+                {[['Diseño de marca', '1,00 ud', '800,00', '800,00'], ['Desarrollo web', '1,00 ud', '1.500,00', '1.500,00'], ['Mantenimiento', '12,00 h', '50,00', '600,00']].map((r, i) => (
+                  <div key={i} className="grid grid-cols-5 text-xs py-2.5 border-b border-gray-100">
+                    <span className="col-span-2 font-semibold text-gray-800">{r[0]}</span>
+                    <span className="text-right text-gray-600">{r[1]}</span>
+                    <span className="text-right text-gray-600">{r[2]}</span>
+                    <span className="text-right font-bold text-gray-900">{r[3]}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex justify-end mt-4">
-                <div className="bg-accent text-white rounded-lg px-5 py-2 flex items-center gap-6">
-                  <span className="text-xs font-bold uppercase tracking-wide">Total</span>
-                  <span className="font-mono font-bold">3.509,00 €</span>
+
+              <div className="flex justify-end mt-5">
+                <div className="w-64">
+                  <div className="flex justify-between text-xs text-gray-500 py-1"><span>Base imponible</span><span className="text-gray-800">2.900,00</span></div>
+                  <div className="flex justify-between text-xs text-gray-500 py-1"><span>IVA (21 %)</span><span className="text-gray-800">609,00</span></div>
+                  <div className="border-t-2 border-accent mt-1.5 pt-2 flex justify-between items-baseline">
+                    <span className="text-xs font-bold tracking-widest text-gray-900">TOTAL</span>
+                    <span className="text-xl font-extrabold text-accent">3.509,00 €</span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="border-t border-gray-200 mt-6 pt-2 flex justify-between text-[9px] text-gray-400">
+                <span>TU EMPRESA, S.L. · NIF B12345678 · Calle Mayor 1, 33001 Oviedo</span>
+                <span>Página 1 de 1</span>
               </div>
             </div>
           </div>
