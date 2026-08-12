@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, RotateCcw, Download, Upload, Shield, Clock, FolderOpen, History, HardDrive } from 'lucide-react';
 import { getEmisorSettings, saveEmisorSettings, DEFAULT_EMISOR } from '../db';
 import { invalidateLogoCache } from '../utils/logoSvg';
-import { downloadBackup, importBackup, getLastBackupDate, hasLocalBackup, restoreFromLocalBackup, pickBackupFolder, getBackupFolderName, clearBackupFolder, listRecoverySources, autoBackup } from '../utils/backup';
+import { downloadBackup, importBackup, getLastBackupDate, hasLocalBackup, restoreFromLocalBackup, pickBackupFolder, getBackupFolderName, clearBackupFolder, listRecoverySources, autoBackup, shareBackup } from '../utils/backup';
 
 export default function EmisorSettings() {
   const navigate = useNavigate();
@@ -47,6 +47,17 @@ export default function EmisorSettings() {
     await downloadBackup();
     setBackupMsg('Backup descargado correctamente');
     setTimeout(() => setBackupMsg(''), 3000);
+  };
+
+  // En movil abre el share sheet (Drive / OneDrive / Files); en escritorio descarga
+  const handleShareBackup = async () => {
+    try {
+      const how = await shareBackup();
+      setBackupMsg(how === 'shared' ? 'Backup compartido: guardalo en tu nube' : 'Backup descargado (tu navegador no soporta compartir archivos)');
+    } catch (err) {
+      if (err.name !== 'AbortError') setBackupMsg('Error: ' + err.message);
+    }
+    setTimeout(() => setBackupMsg(''), 4000);
   };
 
   const handleImportFile = async (e) => {
@@ -239,6 +250,18 @@ export default function EmisorSettings() {
             <div>
               <div className="font-medium text-gray-800 text-sm">Descargar backup</div>
               <div className="text-xs text-gray-500">Exporta todas las facturas y ajustes como archivo JSON</div>
+            </div>
+          </button>
+
+          {/* Share to cloud (mobile share sheet / desktop download) */}
+          <button onClick={handleShareBackup}
+            className="flex items-center gap-3 w-full px-4 py-3 bg-sky-50/50 hover:bg-sky-50 border border-sky-200/50 rounded-xl transition text-left">
+            <div className="p-2 bg-sky-100 rounded-lg">
+              <Shield size={18} className="text-sky-600" />
+            </div>
+            <div>
+              <div className="font-medium text-gray-800 text-sm">Enviar backup a tu nube</div>
+              <div className="text-xs text-gray-500">En el móvil abre el menú de compartir: guárdalo en Google Drive, OneDrive o Archivos con dos toques</div>
             </div>
           </button>
 

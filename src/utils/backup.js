@@ -188,6 +188,23 @@ export async function downloadBackup() {
   await writeLocalBackup(data);
 }
 
+// Enviar el backup a la nube del usuario via share sheet nativo (movil):
+// Drive / OneDrive / Files aparecen como destinos, sin OAuth ni servidores.
+// Devuelve 'shared' | 'downloaded' segun lo que haya soportado el dispositivo.
+export async function shareBackup() {
+  const data = await exportAllData();
+  const json = JSON.stringify(data, null, 2);
+  const date = new Date().toISOString().split('T')[0];
+  const file = new File([json], `presufact-backup-${date}.json`, { type: 'application/json' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({ files: [file], title: 'Backup de Presufact' });
+    await writeLocalBackup(data);
+    return 'shared';
+  }
+  await downloadBackup();
+  return 'downloaded';
+}
+
 export async function importBackup(file) {
   const text = await file.text();
   const data = JSON.parse(text);
