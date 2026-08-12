@@ -42,9 +42,36 @@ function effectiveTextAccent(rgb) {
   return rgb;
 }
 
+// Las fuentes estandar del PDF solo cubren WinAnsi: los caracteres fuera de ese
+// rango (emojis, comillas curvas, guiones largos...) saldrian como basura.
+// Se mapean los tipograficos habituales y se elimina el resto irrepresentable.
+function sanitizePdfString(s) {
+  return s
+    .replace(/[‘’‚′]/g, "'")
+    .replace(/[“”„″]/g, '"')
+    .replace(/[–—−]/g, '-')
+    .replace(/…/g, '...')
+    .replace(/[•■●▪◦⁃]/g, '-')
+    .replace(/[   ]/g, ' ')
+    .replace(/[^\x00-\xFF€ŒœŠšŽžƒ™]/g, '');
+}
+
+function sanitizeForPdf(value, key) {
+  if (key === 'logo') return value; // dataURL: no tocar
+  if (typeof value === 'string') return sanitizePdfString(value);
+  if (Array.isArray(value)) return value.map(v => sanitizeForPdf(v));
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const k of Object.keys(value)) out[k] = sanitizeForPdf(value[k], k);
+    return out;
+  }
+  return value;
+}
+
 // Builds the jsPDF document and returns { doc, filename }.
 // Use generatePDF() to download it or generatePDFFile() to get a File (for sharing).
-async function buildPDF(invoice) {
+async function buildPDF(rawInvoice) {
+  const invoice = sanitizeForPdf(rawInvoice);
   const em = invoice.emisor || {};
   const logoData = await getLogoBase64(em);
 
@@ -88,6 +115,14 @@ async function buildPDF(invoice) {
     doc.line(x1, y, x2, y);
   };
 
+  // Trunca con elipsis al ancho dado (usa la fuente/tamano activos)
+  const truncate = (text, maxW) => {
+    let t = String(text || '');
+    if (doc.getTextWidth(t) <= maxW) return t;
+    while (t.length > 1 && doc.getTextWidth(t + '...') > maxW) t = t.slice(0, -1);
+    return t.trimEnd() + '...';
+  };
+
   // ---- Cabecera de tabla (labels + regla negra). Devuelve y de la primera fila ----
   const drawTableHead = (yLabels) => {
     zoneLabel('Concepto', X_LEFT, yLabels);
@@ -104,7 +139,7 @@ async function buildPDF(invoice) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     setColor(INK);
-    doc.text(em.nombre || '', X_LEFT, 18);
+    doc.text(truncate(em.nombre, 88), X_LEFT, 18);
     doc.setFont('helvetica', 'normal');
     setColor(GREY_MID);
     doc.text(`${docLabelText} N.º ${invoice.invoiceNumber || ''} · ${dateFormatted}`, X_RIGHT, 18, { align: 'right' });
@@ -151,8 +186,11 @@ async function buildPDF(invoice) {
       doc.addImage(logoData, fmt, X_LEFT, 16, props.width * ratio, h);
       const nameY = 16 + h + 5;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
       setColor(INK);
+      // encoger hasta que quepa sin invadir el bloque del numero (max 92 mm)
+      let nSize = 10;
+      doc.setFontSize(nSize);
+      while (doc.getTextWidth(em.nombre || '') > 92 && nSize > 7.5) { nSize -= 0.5; doc.setFontSize(nSize); }
       doc.text(em.nombre || '', X_LEFT, nameY);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
@@ -167,24 +205,32 @@ async function buildPDF(invoice) {
       console.warn('Could not add logo:', e);
     }
   } else {
+    // Bloque de flujo dinamico: nombre (1-2 lineas), subtitulo y datos avanzan
+    // segun lo que ocupe lo anterior — nada se solapa con nombres largos.
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
     setColor(INK);
-    doc.text(em.nombre || '', X_LEFT, 22);
-    let ly = 33;
+    let nSize = 16;
+    doc.setFontSize(nSize);
+    while (doc.getTextWidth(em.nombre || '') > 92 && nSize > 10) { nSize -= 0.5; doc.setFontSize(nSize); }
+    const nameLines = doc.splitTextToSize(em.nombre || '', 92).slice(0, 2);
+    doc.text(nameLines, X_LEFT, 22);
+    let ly = 22 + (nameLines.length - 1) * (nSize * 0.42) + 5.5;
     if (em.subtitulo) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
       setColor(GREY_MID);
-      doc.text(em.subtitulo, X_LEFT, 27.5);
+      const subLines = doc.splitTextToSize(em.subtitulo, 92).slice(0, 2);
+      doc.text(subLines, X_LEFT, ly);
+      ly += subLines.length * 3.8 + 1.2;
     }
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     setColor(GREY_MID);
     for (const line of emisorDataLines) {
       if (ly > 50) break;
-      doc.text(line, X_LEFT, ly);
-      ly += 3.6;
+      const wrapped = doc.splitTextToSize(line, 92).slice(0, 2);
+      doc.text(wrapped, X_LEFT, ly);
+      ly += wrapped.length * 3.6;
     }
   }
 
@@ -216,29 +262,39 @@ async function buildPDF(invoice) {
   doc.line(X_LEFT, 52, X_RIGHT, 52);
   hairline(52.9, X_LEFT, X_RIGHT, RULE_GREY, 0.12);
 
-  // (5) Zona de partes
+  // (5) Zona de partes (columna izquierda: max 92 mm para no invadir la derecha)
   zoneLabel(isPresupuesto ? 'Presupuesto para' : 'Facturar a', X_LEFT, 60);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
   setColor(INK);
-  doc.text(cliente.nombre || '', X_LEFT, 65.5);
+  let clientNameBottom = 65.5;
+  {
+    let cSize = 10;
+    doc.setFontSize(cSize);
+    while (doc.getTextWidth(cliente.nombre || '') > 92 && cSize > 8) { cSize -= 0.5; doc.setFontSize(cSize); }
+    const cNameLines = doc.splitTextToSize(cliente.nombre || '', 92).slice(0, 2);
+    doc.text(cNameLines, X_LEFT, 65.5);
+    clientNameBottom = 65.5 + (cNameLines.length - 1) * (cSize * 0.42);
+  }
   {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     setColor(GREY_DARK);
-    let cy = 70;
+    let cy = clientNameBottom + 4.5;
     const clientLines = [
       cliente.direccion,
       [cliente.cp, cliente.ciudad].filter(Boolean).join(' '),
       cliente.provincia
     ].filter(Boolean);
     for (const line of clientLines) {
-      doc.text(String(line), X_LEFT, cy);
-      cy += 4;
+      if (cy > 82) break; // la zona de partes termina antes de la tabla
+      // direcciones largas: envolver a 92 mm (max 2 lineas por campo)
+      const wrapped = doc.splitTextToSize(String(line), 92).slice(0, 2);
+      doc.text(wrapped, X_LEFT, cy);
+      cy += wrapped.length * 4;
     }
     if (cliente.nif) {
       setColor(GREY_MID);
-      doc.text('NIF: ' + cliente.nif, X_LEFT, cy);
+      doc.text('NIF: ' + cliente.nif, X_LEFT, Math.min(cy, 86));
     }
   }
 
@@ -278,7 +334,12 @@ async function buildPDF(invoice) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     setColor(INK);
-    const dLines = doc.splitTextToSize(descTrabajo, CONTENT_W);
+    // cap a 6 lineas: el concepto es un titular, el detalle va en las lineas
+    let dLines = doc.splitTextToSize(descTrabajo, CONTENT_W);
+    if (dLines.length > 6) {
+      dLines = dLines.slice(0, 6);
+      dLines[5] = dLines[5].replace(/\s+\S*$/, '') + ' ...';
+    }
     doc.text(dLines, X_LEFT, 96.5);
     tableZoneY = 96.5 + (dLines.length - 1) * 4 + 8;
   }
@@ -289,9 +350,15 @@ async function buildPDF(invoice) {
   // Fila abierta: concepto en dos niveles + cifras ancladas a bordes derechos.
   // rows: { title, titleBold, desc, tag, qty, unit, price, dto, total, negative }
   const drawRow = (row) => {
+    // La altura de fila cuenta TODAS las lineas reales: titulo envuelto,
+    // descripcion envuelta y micro-etiqueta. Asi nada pisa la fila siguiente.
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    const titleLines = row.title ? doc.splitTextToSize(String(row.title), COL_CONCEPT_W) : [];
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     const descLines = row.desc ? doc.splitTextToSize(String(row.desc), COL_CONCEPT_W) : [];
-    let conceptLines = (row.title ? 1 : 0) + descLines.length + (row.tag ? 1 : 0);
+    let conceptLines = titleLines.length + descLines.length + (row.tag ? 1 : 0);
     if (conceptLines === 0) conceptLines = 1;
     const rowH = Math.max(9, conceptLines * 3.6 + 6);
 
@@ -303,12 +370,12 @@ async function buildPDF(invoice) {
 
     // Concepto
     let cy = baseline;
-    if (row.title) {
+    if (titleLines.length) {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
       setColor(INK);
-      doc.text(String(row.title), X_LEFT, cy, { maxWidth: COL_CONCEPT_W });
-      cy += 3.6;
+      doc.text(titleLines, X_LEFT, cy);
+      cy += titleLines.length * 3.6;
     }
     if (descLines.length) {
       doc.setFont('helvetica', row.title ? 'normal' : 'normal');
@@ -426,9 +493,16 @@ async function buildPDF(invoice) {
   if (tax.hasIRPF) numRows += 1;
   const summaryBlockH = numRows * 5.5 + 32;
 
+  // Las observaciones comparten banda con el resumen: la antiparticion debe
+  // contar el mas alto de los dos bloques.
+  doc.setFontSize(7.5);
+  const obsText = (invoice.observaciones || '').trim();
+  const obsLinesAll = obsText ? doc.splitTextToSize(obsText, 88) : [];
+  const obsBlockH = obsLinesAll.length ? obsLinesAll.length * 3.4 + 8 : 0;
+
   y += 6;
   // Antiparticion: resumen y TOTAL jamas se separan de pagina
-  if (y + summaryBlockH > PAGE_BOTTOM) {
+  if (y + Math.max(summaryBlockH, Math.min(obsBlockH, 120)) > PAGE_BOTTOM) {
     y = newPagePlain();
   }
   const summaryTop = y;
@@ -515,14 +589,20 @@ async function buildPDF(invoice) {
     summaryBottom = totalBaseline + 10;
   }
 
-  // Observaciones a la izquierda del resumen
+  // Observaciones a la izquierda del resumen. Cap duro: nunca pisar el pie —
+  // si no caben todas las lineas, se corta con elipsis.
   let obsBottom = summaryTop;
-  if ((invoice.observaciones || '').trim()) {
+  if (obsLinesAll.length) {
     zoneLabel('Observaciones', X_LEFT, summaryTop);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     setColor(GREY_DARK);
-    const obsLines = doc.splitTextToSize(invoice.observaciones, 88);
+    const maxObsLines = Math.max(1, Math.floor((PAGE_BOTTOM - summaryTop - 4.5) / 3.4));
+    let obsLines = obsLinesAll;
+    if (obsLines.length > maxObsLines) {
+      obsLines = obsLines.slice(0, maxObsLines);
+      obsLines[obsLines.length - 1] = obsLines[obsLines.length - 1].replace(/\s+\S*$/, '') + ' ...';
+    }
     doc.text(obsLines, X_LEFT, summaryTop + 4.5);
     obsBottom = summaryTop + 4.5 + obsLines.length * 3.4;
   }
@@ -559,8 +639,8 @@ async function buildPDF(invoice) {
         doc.text(formatNumber(parseFloat(v.importe)), 70, y, { align: 'right' });
         doc.setFont('helvetica', 'normal');
       }
-      if (v.domiciliacion) doc.text(String(v.domiciliacion), 80, y, { maxWidth: 40 });
-      if (v.oficina) doc.text(String(v.oficina), 122, y, { maxWidth: 24 });
+      if (v.domiciliacion) doc.text(truncate(v.domiciliacion, 40), 80, y);
+      if (v.oficina) doc.text(truncate(v.oficina, 24), 122, y);
       if (v.numeroCuenta) {
         doc.setFont('courier', 'normal'); // courier: reservado a datos bancarios
         doc.setFontSize(7); // 7 pt para que un IBAN completo quepa en una linea
