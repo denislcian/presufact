@@ -247,22 +247,38 @@ export default function InvoicePreview({ invoice }) {
                 <span>IVA (Inv. Sujeto Pasivo)</span>
                 <span style={{ fontFamily: "'Courier New', monospace" }}>0,00</span>
               </div>
+            ) : tax.esMultiTipo ? (
+              tax.porTipo.map(g => (
+                <div key={g.tipo} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5mm', fontSize: '8.5px' }}>
+                  <span style={{ color: textMuted }}>IVA {g.tipo}% (base {formatNumber(g.base)})</span>
+                  <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>{formatNumber(g.cuota)}</span>
+                </div>
+              ))
             ) : (
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5mm', fontSize: '8.5px' }}>
-                <span style={{ color: textMuted }}>IVA ({ivaConfig.tipo}%)</span>
+                <span style={{ color: textMuted }}>IVA ({tax.porTipo[0]?.tipo ?? ivaConfig.tipo}%)</span>
                 <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>{formatNumber(tax.ivaAmount)}</span>
               </div>
             )}
             {tax.hasRE && !tax.isISP && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5mm', fontSize: '8.5px' }}>
-                <span style={{ color: textMuted }}>R.E. ({tax.reRate}%)</span>
-                <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>{formatNumber(tax.reAmount)}</span>
-              </div>
+              tax.esMultiTipo ? (
+                tax.porTipo.filter(g => g.re !== 0).map(g => (
+                  <div key={'re' + g.tipo} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5mm', fontSize: '8.5px' }}>
+                    <span style={{ color: textMuted }}>R.E. {g.reRate}% (base {formatNumber(g.base)})</span>
+                    <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>{formatNumber(g.re)}</span>
+                  </div>
+                ))
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5mm', fontSize: '8.5px' }}>
+                  <span style={{ color: textMuted }}>R.E. ({tax.reRate}%)</span>
+                  <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>{formatNumber(tax.reAmount)}</span>
+                </div>
+              )
             )}
             {tax.hasIRPF && (
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5mm', fontSize: '8.5px', color: '#dc2626' }}>
                 <span>IRPF ({tax.irpfRate}%)</span>
-                <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>-{formatNumber(tax.irpfAmount)}</span>
+                <span style={{ fontFamily: "'Courier New', monospace", fontWeight: '500' }}>{formatNumber(-tax.irpfAmount)}</span>
               </div>
             )}
           </div>

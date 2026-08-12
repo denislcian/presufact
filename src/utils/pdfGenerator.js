@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { formatNumber, calcLineTotal, formatDateES, getUnitLabel, calcInvoiceTaxBreakdown, parseSpanishNumber } from './formatters';
+import { formatNumber, calcLineTotal, formatDateES, getUnitLabel, calcInvoiceTaxBreakdown, parseSpanishNumber, lineIvaRate } from './formatters';
 import { getLogoBase64 } from './logoSvg';
 import { getEmisorSettings } from '../db';
 
@@ -63,6 +63,7 @@ async function buildPDF(invoice) {
   // Etiqueta del documento: las facturas marcadas como proforma lo indican
   // de forma visible (documento no sujeto a Verifactu)
   const docLabelText = (!isPresupuesto && invoice.esProforma) ? 'FACTURA PROFORMA' : invoice.documentType;
+  const ivaConfigForLines = invoice.iva || { tipo: 21 };
 
   const setColor = (c) => doc.setTextColor(c[0], c[1], c[2]);
 
@@ -359,14 +360,19 @@ async function buildPDF(invoice) {
     hairline(y, X_LEFT, X_RIGHT, ROW_RULE, 0.15);
   };
 
-  // Lineas reales (filtrando filas fantasma)
+  // Lineas reales (filtrando filas fantasma). Si una linea lleva un tipo de IVA
+  // distinto del global, se indica bajo el concepto (mencion legal y round-trip
+  // del importador).
+  const defaultIvaRate = Number.isFinite(ivaConfigForLines.tipo) ? ivaConfigForLines.tipo : 21;
   (invoice.lineas || [])
     .filter(l => l.cantidad || l.precioUd || (l.descripcion || '').trim())
     .forEach(linea => {
       const hasData = linea.cantidad || linea.precioUd;
+      const rate = lineIvaRate(linea, ivaConfigForLines);
       drawRow({
         title: (linea.articulo || '').trim(),
         desc: (linea.descripcion || '').trim(),
+        tag: rate !== defaultIvaRate ? `IVA ${rate} %` : null,
         qty: hasData ? formatNumber(parseFloat(linea.cantidad) || 0) : '',
         unit: hasData ? getUnitLabel(linea.unidad) : '',
         price: hasData ? formatNumber(parseFloat(linea.precioUd) || 0) : '',
@@ -411,8 +417,12 @@ async function buildPDF(invoice) {
   const tax = calcInvoiceTaxBreakdown(invoice.lineas || [], ivaConfig, invoice.deducciones);
 
   let numRows = 2; // Base imponible + IVA
+  if (tax.esMultiTipo && !tax.isISP) numRows += tax.porTipo.length * 2 - 1; // desglose base+cuota por tipo
   if (tax.totalDeducciones > 0) numRows += 2;
-  if (tax.hasRE && !tax.isISP) numRows += 1;
+  if (tax.hasRE && !tax.isISP) {
+    // en multi-tipo el recargo se desglosa: una fila por grupo con recargo
+    numRows += tax.esMultiTipo ? tax.porTipo.filter(g => g.re !== 0).length : 1;
+  }
   if (tax.hasIRPF) numRows += 1;
   const summaryBlockH = numRows * 5.5 + 32;
 
@@ -439,17 +449,34 @@ async function buildPDF(invoice) {
     summaryRow('Subtotal líneas', formatNumber(tax.baseLineas));
     summaryRow('Deducciones', '-' + formatNumber(tax.totalDeducciones), true);
   }
-  summaryRow('Base imponible', formatNumber(tax.base));
-  if (tax.isISP) {
-    summaryRow('IVA — Inv. sujeto pasivo', formatNumber(0));
+  if (tax.esMultiTipo && !tax.isISP) {
+    // Desglose legal por tipo de IVA (obligatorio al mezclar tipos en una factura)
+    for (const g of tax.porTipo) {
+      summaryRow(`Base al ${g.tipo} %`, formatNumber(g.base));
+      summaryRow(`IVA (${g.tipo} %)`, formatNumber(g.cuota));
+    }
+    summaryRow('Base imponible total', formatNumber(tax.base));
   } else {
-    summaryRow(`IVA (${ivaConfig.tipo} %)`, formatNumber(tax.ivaAmount));
+    summaryRow('Base imponible', formatNumber(tax.base));
+    if (tax.isISP) {
+      summaryRow('IVA — Inv. sujeto pasivo', formatNumber(0));
+    } else {
+      summaryRow(`IVA (${tax.porTipo[0]?.tipo ?? ivaConfig.tipo} %)`, formatNumber(tax.ivaAmount));
+    }
   }
   if (tax.hasRE && !tax.isISP) {
-    summaryRow(`R.E. (${tax.reRate} %)`, formatNumber(tax.reAmount));
+    if (tax.esMultiTipo) {
+      // Desglose del recargo con su tipo real por cada grupo (mencion obligatoria)
+      for (const g of tax.porTipo.filter(x => x.re !== 0)) {
+        summaryRow(`R.E. ${g.reRate} % (base ${formatNumber(g.base)})`, formatNumber(g.re));
+      }
+    } else {
+      summaryRow(`R.E. (${tax.reRate} %)`, formatNumber(tax.reAmount));
+    }
   }
   if (tax.hasIRPF) {
-    summaryRow(`IRPF (-${tax.irpfRate} %)`, '-' + formatNumber(tax.irpfAmount), true);
+    // formatNumber(-x) mantiene el signo correcto tambien en rectificativas (base negativa)
+    summaryRow(`IRPF (-${tax.irpfRate} %)`, formatNumber(-tax.irpfAmount), true);
   }
 
   // Regla de acento pre-total + TOTAL hero

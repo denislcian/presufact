@@ -130,7 +130,7 @@ export default function TaxSummary() {
                     <td className={cell}>{r.count || '—'}</td>
                     <td className={cell}>{r.count ? formatNumber(r.base) : '—'}</td>
                     <td className={cell + ' text-accent font-semibold'}>{r.count ? formatNumber(r.iva) : '—'}</td>
-                    <td className={cell}>{r.count ? (r.irpf > 0 ? '-' + formatNumber(r.irpf) : '0,00') : '—'}</td>
+                    <td className={cell}>{r.count ? (r.irpf !== 0 ? formatNumber(-r.irpf) : '0,00') : '—'}</td>
                     <td className={cell + ' font-semibold'}>{r.count ? formatNumber(r.total) : '—'}</td>
                     <td className={cell + ' text-amber-600'}>{r.count && r.pendiente > 0 ? formatNumber(r.pendiente) : '—'}</td>
                   </tr>
@@ -140,7 +140,7 @@ export default function TaxSummary() {
                   <td className={cell}>{yearRow.count}</td>
                   <td className={cell}>{formatNumber(yearRow.base)}</td>
                   <td className={cell + ' text-accent'}>{formatNumber(yearRow.iva)}</td>
-                  <td className={cell}>{yearRow.irpf > 0 ? '-' + formatNumber(yearRow.irpf) : '0,00'}</td>
+                  <td className={cell}>{yearRow.irpf !== 0 ? formatNumber(-yearRow.irpf) : '0,00'}</td>
                   <td className={cell}>{formatNumber(yearRow.total)}</td>
                   <td className={cell + ' text-amber-600'}>{yearRow.pendiente > 0 ? formatNumber(yearRow.pendiente) : '—'}</td>
                 </tr>

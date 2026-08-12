@@ -306,14 +306,17 @@ export function parsePresufactPDF(pages) {
       }
       const dtoItem = items.find(it => sameRow(it) && near(it.right, V2.DTO_R) && /%/.test(it.str));
 
-      // concepto: titulo en la misma banda, descripcion debajo hasta la siguiente fila
+      // concepto: titulo en la misma banda, descripcion debajo hasta la siguiente fila.
+      // La micro-etiqueta "IVA X %" bajo el concepto marca el tipo propio de la linea.
+      const isIvaTag = (it) => /^IVA\d{1,2}([.,]\d)?%$/.test(norm(it.str));
       const title = items.find(it => sameRow(it) && near(it.x, V2.X_LEFT));
-      const descItems = items.filter(it =>
-        near(it.x, V2.X_LEFT) && it.y < row.y - 1.5 && it.y > nextY + 3 && !isLabel(it, 'DEDUCCIÓN', 'DEDUCCION')
+      const belowItems = items.filter(it =>
+        near(it.x, V2.X_LEFT) && it.y < row.y - 1.5 && it.y > nextY + 3
       ).sort((a, b) => b.y - a.y);
-      const isDeduction = items.some(it =>
-        near(it.x, V2.X_LEFT) && isLabel(it, 'DEDUCCIÓN', 'DEDUCCION') && it.y < row.y && it.y > nextY
-      ) || parseSpNum(row.importe) < 0;
+      const descItems = belowItems.filter(it => !isLabel(it, 'DEDUCCIÓN', 'DEDUCCION') && !isIvaTag(it));
+      const ivaTagItem = belowItems.find(isIvaTag);
+      const lineIva = ivaTagItem ? parseFloat(norm(ivaTagItem.str).match(/^IVA(\d{1,2}(?:[.,]\d)?)%$/)[1].replace(',', '.')) : undefined;
+      const isDeduction = belowItems.some(it => isLabel(it, 'DEDUCCIÓN', 'DEDUCCION')) || parseSpNum(row.importe) < 0;
 
       const titulo = title ? title.str : '';
       const desc = descItems.map(it => it.str).join(' ');
@@ -333,21 +336,37 @@ export function parsePresufactPDF(pages) {
         cantidad: String(parseSpNum(cantidad) || ''),
         precioUd: String(parseSpNum(row.precio) || ''),
         dto: dtoItem ? String(parseSpNum(dtoItem.str.replace(/[%\s]/g, ''))) : '',
-        unidad: unidad || guessUnit(desc || titulo)
+        unidad: unidad || guessUnit(desc || titulo),
+        ...(lineIva !== undefined ? { iva: lineIva } : {})
       });
     });
   }
 
   // --- Resumen fiscal ---
+  // Con varios tipos de IVA en el PDF, el tipo GLOBAL es el del grupo de mayor
+  // base ("Base al X %"); las lineas ya traen su tipo propio via micro-etiqueta.
   const allItems = pages.flat().filter(it => it.y > V2.FOOTER_Y);
+  const ivaMatches = []; // { tipo, base }
   for (const it of allItems) {
     let m = it.str.match(/^IVA \((\d{1,2}(?:[.,]\d)?) ?%\)$/);
-    if (m) invoice.iva.tipo = parseFloat(m[1].replace(',', '.'));
+    if (m) ivaMatches.push({ tipo: parseFloat(m[1].replace(',', '.')), base: null });
+    m = it.str.match(/^Base al (\d{1,2}(?:[.,]\d)?) ?%$/);
+    if (m) {
+      const tipo = parseFloat(m[1].replace(',', '.'));
+      const val = allItems.find(v => Math.abs(v.y - it.y) <= 1.5 && near(v.right, V2.TOTAL_R) && isNumStr(v.str));
+      const entry = ivaMatches.find(e => e.tipo === tipo) || (ivaMatches.push({ tipo, base: null }), ivaMatches[ivaMatches.length - 1]);
+      entry.base = val ? Math.abs(parseSpNum(val.str)) : null;
+    }
     m = it.str.match(/^IRPF \(-?(\d{1,2}) ?%\)$/);
     if (m) invoice.iva.irpf = parseInt(m[1]);
-    m = it.str.match(/^R\.E\. \((\d{1,2}(?:[.,]\d)?) ?%\)$/);
-    if (m) invoice.iva.recargoEquivalencia = true;
+    if (/^(R\.E\.|Recargo de equivalencia)/.test(it.str)) invoice.iva.recargoEquivalencia = true;
     if (/Inv\.? sujeto pasivo|inversi[oó]n del sujeto pasivo/i.test(it.str)) invoice.iva.inversionSujetoPasivo = true;
+  }
+  if (ivaMatches.length === 1) {
+    invoice.iva.tipo = ivaMatches[0].tipo;
+  } else if (ivaMatches.length > 1) {
+    const best = [...ivaMatches].sort((a, b) => (b.base ?? -1) - (a.base ?? -1))[0];
+    invoice.iva.tipo = best.tipo;
   }
 
   // --- Observaciones ---

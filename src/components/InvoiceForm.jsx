@@ -426,6 +426,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
                     <th className="px-2 py-2 text-right w-24">Precio</th>
                     <th className="px-2 py-2 text-right w-20">Subtotal</th>
                     <th className="px-2 py-2 text-right w-16">Dto.%</th>
+                    <th className="px-2 py-2 text-center w-20" title="Tipo de IVA de esta linea. 'Global' usa el tipo de la pestana Impuestos.">IVA</th>
                     <th className="px-2 py-2 text-right w-24">Total</th>
                     <th className="w-10"></th>
                   </tr>
@@ -461,6 +462,14 @@ export default function InvoiceForm({ docType = 'factura' }) {
                       <td className="px-1 py-1">
                         <input type="number" step="0.01" className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-right" value={linea.dto}
                           onChange={e => updateField(`lineas.${idx}.dto`, e.target.value)} />
+                      </td>
+                      <td className="px-1 py-1">
+                        <select className="w-full px-1 py-1.5 border border-gray-200 rounded text-sm text-center bg-white"
+                          value={linea.iva ?? ''}
+                          onChange={e => updateField(`lineas.${idx}.iva`, e.target.value === '' ? undefined : parseFloat(e.target.value))}>
+                          <option value="">Global</option>
+                          {IVA_OPTIONS.map(t => <option key={t} value={t}>{t} %</option>)}
+                        </select>
                       </td>
                       <td className="px-1 py-1 text-right font-mono font-semibold">
                         {(linea.cantidad && linea.precioUd) ? formatNumber(calcLineTotal(linea)) : ''}
@@ -756,13 +765,14 @@ export default function InvoiceForm({ docType = 'factura' }) {
                 {/* IVA selector */}
                 <div className="space-y-4">
                   <div>
-                    <label className={labelClass}>Tipo de IVA</label>
+                    <label className={labelClass}>Tipo de IVA (por defecto)</label>
                     <select className={inputClass} value={ivaConfig.tipo}
                       onChange={e => updateField('iva.tipo', parseInt(e.target.value))}>
                       {IVA_OPTIONS.map(rate => (
                         <option key={rate} value={rate}>{rate}%{rate === 0 ? ' (Exento)' : ''}</option>
                       ))}
                     </select>
+                    <p className="text-xs text-gray-400 mt-1">Puedes fijar un IVA distinto en líneas concretas desde la pestaña Líneas (columna IVA).</p>
                   </div>
                   <div>
                     <label className={labelClass}>Retencion IRPF</label>
@@ -818,22 +828,39 @@ export default function InvoiceForm({ docType = 'factura' }) {
                       <span>IVA (Inv. Sujeto Pasivo)</span>
                       <span className="font-mono">0,00 &euro;</span>
                     </div>
+                  ) : tax.esMultiTipo ? (
+                    // Desglose legal por tipo cuando la factura mezcla tipos de IVA
+                    tax.porTipo.map(g => (
+                      <div key={g.tipo} className="flex justify-between">
+                        <span className="text-gray-600">IVA {g.tipo}% (base {formatNumber(g.base)})</span>
+                        <span className="font-mono font-medium">{formatNumber(g.cuota)} &euro;</span>
+                      </div>
+                    ))
                   ) : (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">IVA ({ivaConfig.tipo}%)</span>
+                      <span className="text-gray-600">IVA ({tax.porTipo[0]?.tipo ?? ivaConfig.tipo}%)</span>
                       <span className="font-mono font-medium">{formatNumber(tax.ivaAmount)} &euro;</span>
                     </div>
                   )}
                   {tax.hasRE && !tax.isISP && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">R.E. ({tax.reRate}%)</span>
-                      <span className="font-mono font-medium">{formatNumber(tax.reAmount)} &euro;</span>
-                    </div>
+                    tax.esMultiTipo ? (
+                      tax.porTipo.filter(g => g.re !== 0).map(g => (
+                        <div key={'re' + g.tipo} className="flex justify-between">
+                          <span className="text-gray-600">R.E. {g.reRate}% (base {formatNumber(g.base)})</span>
+                          <span className="font-mono font-medium">{formatNumber(g.re)} &euro;</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">R.E. ({tax.reRate}%)</span>
+                        <span className="font-mono font-medium">{formatNumber(tax.reAmount)} &euro;</span>
+                      </div>
+                    )
                   )}
                   {tax.hasIRPF && (
                     <div className="flex justify-between text-red-600">
                       <span>IRPF ({tax.irpfRate}%)</span>
-                      <span className="font-mono">-{formatNumber(tax.irpfAmount)} &euro;</span>
+                      <span className="font-mono">{formatNumber(-tax.irpfAmount)} &euro;</span>
                     </div>
                   )}
                   <div className="border-t border-gray-300 pt-3 flex justify-between">

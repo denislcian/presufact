@@ -244,6 +244,11 @@ export default function LandingPage() {
             </div>
             <span className="font-bold">Presufact</span>
           </div>
+          <div className="flex items-center justify-center gap-4 text-xs mb-3">
+            <Link to="/generador-de-facturas" className="text-gray-500 hover:text-accent transition">Generador de facturas</Link>
+            <Link to="/generador-de-presupuestos" className="text-gray-500 hover:text-accent transition">Generador de presupuestos</Link>
+            <Link to="/verifactu" className="text-gray-500 hover:text-accent transition">Guía Verifactu</Link>
+          </div>
           <p className="text-xs text-gray-400 max-w-2xl mx-auto">
             Presufact genera documentos en formato borrador/proforma. Para facturación oficial verifica los requisitos
             vigentes (Verifactu / factura electrónica). Tus datos se guardan localmente en tu dispositivo.

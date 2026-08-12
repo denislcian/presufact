@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation, Lin
 import { FileText, Receipt, ClipboardList, Settings, Home, Calculator } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import VerifactuPage from './pages/VerifactuPage';
+import SeoLanding from './pages/SeoLanding';
 import HomePage from './components/HomePage';
 import InvoiceList from './components/InvoiceList';
 import InvoiceForm from './components/InvoiceForm';
@@ -119,6 +120,8 @@ export default function App() {
       {/* Public pages */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/verifactu" element={<VerifactuPage />} />
+      <Route path="/generador-de-facturas" element={<SeoLanding variant="facturas" />} />
+      <Route path="/generador-de-presupuestos" element={<SeoLanding variant="presupuestos" />} />
 
       {/* Application area (onboarding-gated) */}
       <Route element={<AppLayout />}>

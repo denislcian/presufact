@@ -191,7 +191,7 @@ export default function InvoiceList({ docType = 'factura' }) {
         `"${(inv.cliente?.nombre || inv.clientName || '').replace(/"/g, '""')}"`,
         inv.cliente?.nif || '',
         esNum(tax.base),
-        tax.isISP ? 'ISP' : iva.tipo,
+        tax.isISP ? 'ISP' : (tax.esMultiTipo ? tax.porTipo.map(g => g.tipo).join('/') : (tax.porTipo[0]?.tipo ?? iva.tipo)),
         esNum(tax.ivaAmount),
         tax.reAmount ? esNum(tax.reAmount) : '',
         tax.hasIRPF ? tax.irpfRate : '',

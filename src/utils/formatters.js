@@ -109,22 +109,66 @@ export function calcDeduccionesTotal(deducciones) {
   }, 0);
 }
 
+// Tipo de IVA efectivo de una linea: el suyo propio si lo tiene, si no el global.
+// Compatibilidad total: los documentos existentes no tienen l.iva y heredan el global.
+export function lineIvaRate(linea, ivaConfig) {
+  const own = linea?.iva;
+  if (own !== undefined && own !== null && own !== '') {
+    const n = parseFloat(own);
+    if (Number.isFinite(n)) return n;
+  }
+  // Number.isFinite tambien descarta NaN (typeof NaN === 'number')
+  return (ivaConfig && Number.isFinite(ivaConfig.tipo)) ? ivaConfig.tipo : 21;
+}
+
 export function calcInvoiceTaxBreakdown(lineas, iva, deducciones) {
+  const ivaConfig = iva || { tipo: 21, recargoEquivalencia: false, inversionSujetoPasivo: false };
+  const isISP = ivaConfig.inversionSujetoPasivo;
   const baseLineas = lineas.reduce((sum, l) => sum + calcLineTotal(l), 0);
   const totalDeducciones = calcDeduccionesTotal(deducciones);
   const base = baseLineas - totalDeducciones;
-  const ivaConfig = iva || { tipo: 21, recargoEquivalencia: false, inversionSujetoPasivo: false };
-  const isISP = ivaConfig.inversionSujetoPasivo;
-  const ivaAmount = isISP ? 0 : calcIVA(base, ivaConfig.tipo);
-  const reAmount = (!isISP && ivaConfig.recargoEquivalencia) ? calcRE(base, ivaConfig.tipo) : 0;
-  // IRPF (retencion): se resta del total. Habitual en autonomos que facturan a empresas.
+
+  // Desglose por tipo de IVA (obligatorio en factura cuando se mezclan tipos).
+  // Las deducciones se aplican a la base del tipo global (el tipo "por defecto").
+  const grupos = new Map(); // tipo -> base
+  for (const l of lineas) {
+    const rate = lineIvaRate(l, ivaConfig);
+    grupos.set(rate, (grupos.get(rate) || 0) + calcLineTotal(l));
+  }
+  const defaultRate = Number.isFinite(ivaConfig.tipo) ? ivaConfig.tipo : 21;
+  if (totalDeducciones !== 0) {
+    grupos.set(defaultRate, (grupos.get(defaultRate) || 0) - totalDeducciones);
+  }
+
+  const porTipo = [...grupos.entries()]
+    .filter(([, b]) => b !== 0)
+    .sort((a, b) => b[0] - a[0])
+    .map(([tipo, tipoBase]) => ({
+      tipo,
+      base: tipoBase,
+      cuota: isISP ? 0 : calcIVA(tipoBase, tipo),
+      reRate: RE_RATES[tipo] || 0,
+      re: (!isISP && ivaConfig.recargoEquivalencia) ? calcRE(tipoBase, tipo) : 0
+    }));
+
+  const ivaAmount = porTipo.reduce((s, g) => s + g.cuota, 0);
+  const reAmount = porTipo.reduce((s, g) => s + g.re, 0);
+  // IRPF (retencion): se resta del total, sobre la base completa. Con base
+  // negativa (rectificativas) la retencion tambien se invierte.
   const irpfRate = parseFloat(ivaConfig.irpf) || 0;
-  const irpfAmount = base > 0 ? base * (irpfRate / 100) : 0;
+  const irpfAmount = base !== 0 ? base * (irpfRate / 100) : 0;
   const total = base + ivaAmount + reAmount - irpfAmount;
+
+  // El tipo de recargo mostrado debe ser el REALMENTE aplicado: con un solo
+  // grupo es el de ese grupo (que puede diferir del global si la linea fija
+  // su propio IVA); con varios, los consumidores desglosan por grupo.
+  const effectiveReRate = porTipo.length === 1 ? porTipo[0].reRate : (RE_RATES[defaultRate] || 0);
+
   return {
     baseLineas, totalDeducciones, base,
-    ivaRate: ivaConfig.tipo, ivaAmount,
-    reRate: RE_RATES[ivaConfig.tipo] || 0, reAmount,
+    porTipo, esMultiTipo: porTipo.length > 1,
+    ivaRate: defaultRate, ivaAmount,
+    reRate: effectiveReRate, reAmount,
     irpfRate, irpfAmount, hasIRPF: irpfRate > 0,
     isISP, hasRE: ivaConfig.recargoEquivalencia, total
   };
