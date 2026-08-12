@@ -154,6 +154,7 @@ export default function Onboarding({ onDone }) {
                       <div>
                         <p className="text-sm font-semibold text-emerald-800">Protege tus datos (recomendado)</p>
                         <p className="text-xs text-emerald-700 mt-0.5">Elige una carpeta y guardaremos una copia de cada factura ahi automaticamente. Asi no perderas nada aunque borres el navegador.</p>
+                        <p className="text-xs text-emerald-700 mt-1.5"><strong>Truco:</strong> si eliges una carpeta dentro de OneDrive, Google Drive o Dropbox, tus copias se subiran solas a tu nube — sin pasar por ningun servidor nuestro.</p>
                       </div>
                     </div>
                     {backupFolder ? (

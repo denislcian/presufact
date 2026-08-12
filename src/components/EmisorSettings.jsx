@@ -297,6 +297,15 @@ export default function EmisorSettings() {
               </div>
             </button>
           )}
+          <div className="mt-3 flex items-start gap-2 bg-sky-50 border border-sky-100 rounded-lg px-3 py-2.5">
+            <span className="text-base leading-none mt-0.5">☁️</span>
+            <p className="text-xs text-sky-800">
+              <strong>Copia en tu nube, sin renunciar a la privacidad:</strong> elige una carpeta dentro de
+              <strong> OneDrive</strong>, <strong>Google Drive</strong> o <strong>Dropbox</strong> y tu propio programa de
+              sincronización subirá cada backup a tu nube automáticamente. Tus datos siguen sin pasar por ningún servidor
+              de Presufact (no tenemos ninguno).
+            </p>
+          </div>
         </div>
 
         {/* Backup history */}

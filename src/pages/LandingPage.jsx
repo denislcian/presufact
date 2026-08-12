@@ -188,7 +188,7 @@ export default function LandingPage() {
           <div className="grid sm:grid-cols-3 gap-4 mt-8 text-left">
             {[
               { icon: Lock, t: 'Sin servidor', d: 'Nada sale de tu navegador.' },
-              { icon: FolderSync, t: 'Copias en tu disco', d: 'Backup automático en la carpeta que elijas.' },
+              { icon: FolderSync, t: 'Copias en tu disco o tu nube', d: 'Backup automático en la carpeta que elijas — también dentro de tu OneDrive, Drive o Dropbox.' },
               { icon: Zap, t: 'Sin registro', d: 'Empiezas a usarlo al instante.' },
             ].map((x, i) => (
               <div key={i} className="bg-white/5 rounded-xl p-4 border border-white/10">
