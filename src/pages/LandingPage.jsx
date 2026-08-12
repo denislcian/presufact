@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   FileText, ClipboardList, ShieldCheck, Download, Zap, FolderSync,
   ArrowRight, Check, Lock, FileDown, CircleDollarSign, MonitorSmartphone
@@ -212,7 +212,12 @@ export default function LandingPage() {
                   {f.q}
                   <span className="text-gray-400 group-open:rotate-45 transition-transform text-xl leading-none">+</span>
                 </summary>
-                <p className="mt-2 text-sm text-gray-500 leading-relaxed">{f.a}</p>
+                <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                  {f.a}
+                  {/Verifactu/i.test(f.q) && (
+                    <> <Link to="/verifactu" className="text-accent underline hover:no-underline">Lee nuestra guía completa sobre Verifactu</Link>.</>
+                  )}
+                </p>
               </details>
             ))}
           </div>

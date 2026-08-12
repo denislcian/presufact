@@ -60,6 +60,9 @@ async function buildPDF(invoice) {
   const dateFormatted = formatDateES(invoice.date);
   const isPresupuesto = invoice.documentType === 'Presupuesto';
   const cliente = invoice.cliente || {};
+  // Etiqueta del documento: las facturas marcadas como proforma lo indican
+  // de forma visible (documento no sujeto a Verifactu)
+  const docLabelText = (!isPresupuesto && invoice.esProforma) ? 'FACTURA PROFORMA' : invoice.documentType;
 
   const setColor = (c) => doc.setTextColor(c[0], c[1], c[2]);
 
@@ -103,7 +106,7 @@ async function buildPDF(invoice) {
     doc.text(em.nombre || '', X_LEFT, 18);
     doc.setFont('helvetica', 'normal');
     setColor(GREY_MID);
-    doc.text(`${invoice.documentType} N.º ${invoice.invoiceNumber || ''} · ${dateFormatted}`, X_RIGHT, 18, { align: 'right' });
+    doc.text(`${docLabelText} N.º ${invoice.invoiceNumber || ''} · ${dateFormatted}`, X_RIGHT, 18, { align: 'right' });
     hairline(21);
   };
 
@@ -185,7 +188,7 @@ async function buildPDF(invoice) {
   }
 
   // (4) Bloque documento derecho: kicker + numero hero + fecha
-  zoneLabel(invoice.documentType, X_RIGHT, 22, { align: 'right', size: 9, color: ACCENT_TEXT, charSpace: 1 });
+  zoneLabel(docLabelText, X_RIGHT, 22, { align: 'right', size: 9, color: ACCENT_TEXT, charSpace: 1 });
 
   {
     const num = String(invoice.invoiceNumber || '');

@@ -133,14 +133,29 @@ function getTable(docType) {
 export async function getNextNumber(docType = 'factura') {
   const config = DOC_TYPES[docType];
   const table = getTable(docType);
-  const last = await table.orderBy('invoiceNumber').reverse().first();
-  if (!last) return config.defaultNumber;
-  const numStr = (last.invoiceNumber || '').replace(config.numberPrefix, '');
-  const next = parseInt(numStr) + 1;
-  if (docType === 'presupuesto') {
-    return config.numberPrefix + String(next).padStart(4, '0');
+  const all = await table.toArray();
+  if (all.length === 0) return config.defaultNumber;
+
+  // Maximo NUMERICO del sufijo de cada numero (el orden lexicografico falla con
+  // longitudes distintas, y numeros libres como "FA-2026-01" o "R-0001" no deben
+  // producir jamas un "NaN"). Las rectificativas (serie R-) llevan contador propio.
+  let max = 0;
+  let maxRaw = null;
+  for (const doc of all) {
+    const raw = String(doc.invoiceNumber || '');
+    if (/^R-/.test(raw)) continue; // serie de rectificativas: no avanza la serie normal
+    const m = raw.match(/(\d+)\s*$/);
+    if (!m) continue;
+    const n = parseInt(m[1], 10);
+    if (n > max) { max = n; maxRaw = { raw, digits: m[1] }; }
   }
-  return next.toString();
+  if (!maxRaw) return config.defaultNumber;
+
+  const next = max + 1;
+  // Conservar el formato del numero mas alto: prefijo + padding de ceros
+  const prefix = maxRaw.raw.slice(0, maxRaw.raw.length - maxRaw.digits.length);
+  const padded = String(next).padStart(maxRaw.digits.length, '0');
+  return prefix + padded;
 }
 
 // Fire auto-backup after any mutation (dynamic import avoids circular dependency)
@@ -201,6 +216,13 @@ export async function duplicateDocument(docType, id) {
 
 export async function getDocumentCount(docType) {
   return await getTable(docType).count();
+}
+
+// Actualiza campos sueltos de un documento sin tocar el resto
+export async function updateDocumentFields(docType, id, fields) {
+  const result = await getTable(docType).update(id, { ...fields, updatedAt: new Date().toISOString() });
+  triggerAutoBackup();
+  return result;
 }
 
 // Estados disponibles por tipo de documento

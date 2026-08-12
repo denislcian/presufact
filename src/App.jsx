@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation } from 'react-router-dom';
-import { FileText, Receipt, ClipboardList, Settings, Home } from 'lucide-react';
+import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation, Link } from 'react-router-dom';
+import { FileText, Receipt, ClipboardList, Settings, Home, Calculator } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
+import VerifactuPage from './pages/VerifactuPage';
 import HomePage from './components/HomePage';
 import InvoiceList from './components/InvoiceList';
 import InvoiceForm from './components/InvoiceForm';
 import EmisorSettings from './components/EmisorSettings';
+import TaxSummary from './components/TaxSummary';
 import RecoveryBanner from './components/RecoveryBanner';
 import InstallPrompt from './components/InstallPrompt';
+import BackupNudge from './components/BackupNudge';
 import Onboarding from './components/Onboarding';
 import { isOnboarded, getEmisorSettings } from './db';
 
@@ -45,6 +48,7 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-gray-100">
       <RecoveryBanner />
+      <BackupNudge />
       <InstallPrompt />
       {/* Top nav bar */}
       <nav className="bg-white border-b border-gray-200 shadow-sm">
@@ -66,6 +70,7 @@ function AppLayout() {
             { to: '/app', label: 'Inicio', icon: Home, end: true },
             { to: '/facturas', label: 'Facturas', icon: Receipt },
             { to: '/presupuestos', label: 'Presupuestos', icon: ClipboardList },
+            { to: '/impuestos', label: 'Impuestos', icon: Calculator },
           ].map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) =>
@@ -98,9 +103,10 @@ function AppLayout() {
       {/* Footer legal */}
       <footer className="max-w-6xl mx-auto px-4 py-6 mt-4 text-center">
         <p className="text-xs text-gray-400">
-          Presufact genera presupuestos, proformas y borradores de factura en PDF (documentos no sujetos a Verifactu).
-          Para tu facturación oficial, la obligación de software certificado Verifactu entra en vigor el 1/1/2027 (sociedades)
-          y el 1/7/2027 (autónomos) — consulta con tu gestor. Tus datos se guardan localmente en tu dispositivo.
+          Presufact genera presupuestos, facturas proforma y borradores de factura en PDF (documentos no sujetos a Verifactu).
+          La obligación de software certificado Verifactu para la facturación oficial entra en vigor el 1/1/2027 (sociedades)
+          y el 1/7/2027 (autónomos) — <Link to="/verifactu" className="underline hover:text-gray-600">lee nuestra guía</Link> y
+          consulta con tu gestor. Tus datos se guardan localmente en tu dispositivo.
         </p>
       </footer>
     </div>
@@ -110,8 +116,9 @@ function AppLayout() {
 export default function App() {
   return (
     <Routes>
-      {/* Public landing */}
+      {/* Public pages */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/verifactu" element={<VerifactuPage />} />
 
       {/* Application area (onboarding-gated) */}
       <Route element={<AppLayout />}>
@@ -122,6 +129,7 @@ export default function App() {
         <Route path="/presupuestos" element={<InvoiceList docType="presupuesto" />} />
         <Route path="/presupuestos/nuevo" element={<InvoiceForm docType="presupuesto" />} />
         <Route path="/presupuestos/editar/:id" element={<InvoiceForm docType="presupuesto" />} />
+        <Route path="/impuestos" element={<TaxSummary />} />
         <Route path="/ajustes" element={<EmisorSettings />} />
       </Route>
 

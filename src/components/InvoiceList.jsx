@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Copy, Edit3, FileText, Download, Calendar, Euro, Upload, ArrowRightCircle, FileSpreadsheet, Clock, Share2 } from 'lucide-react';
+import { Plus, Search, Trash2, Copy, Edit3, FileText, Download, Calendar, Euro, Upload, ArrowRightCircle, FileSpreadsheet, Clock, Share2, Mail, Undo2 } from 'lucide-react';
 import ImportInvoice from './ImportInvoice';
-import { getAllDocuments, deleteDocument, duplicateDocument, DOC_TYPES, getNextNumber, saveDocument, ESTADOS, cycleEstado } from '../db';
+import { getAllDocuments, deleteDocument, duplicateDocument, DOC_TYPES, getNextNumber, saveDocument, ESTADOS, cycleEstado, updateDocumentFields } from '../db';
 import { formatNumber, formatDateES, calcInvoiceTaxBreakdown } from '../utils/formatters';
 import { generatePDF, generatePDFFile } from '../utils/pdfGenerator';
 
@@ -101,6 +101,33 @@ export default function InvoiceList({ docType = 'factura' }) {
     load();
   };
 
+  // Enviar por email: descarga el PDF y abre el correo con asunto y cuerpo listos
+  // (mailto no permite adjuntar, asi que se descarga primero y se indica en el cuerpo).
+  const handleEmail = async (inv) => {
+    const total = formatNumber(docTotal(inv));
+    const emisorNombre = inv.emisor?.nombre || '';
+    try {
+      const file = await generatePDFFile(inv);
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url; a.download = file.name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { console.warn('No se pudo generar el PDF:', e); }
+    const asunto = `${config.label} ${inv.invoiceNumber}${emisorNombre ? ' — ' + emisorNombre : ''}`;
+    const cuerpo = [
+      'Hola,',
+      '',
+      `Te adjunto ${docType === 'factura' ? 'la factura' : 'el presupuesto'} ${inv.invoiceNumber}` +
+        `${emisorNombre ? ' de ' + emisorNombre : ''} por un total de ${total} EUR.`,
+      '',
+      '(El PDF se acaba de descargar en tu equipo: adjuntalo a este correo antes de enviarlo.)',
+      '',
+      'Un saludo'
+    ].join('\n');
+    window.location.href = `mailto:?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  };
+
   const handleConvertToFactura = async (inv) => {
     const nextNum = await getNextNumber('factura');
     const { id: _, createdAt, updatedAt, ...data } = inv;
@@ -113,7 +140,8 @@ export default function InvoiceList({ docType = 'factura' }) {
       descripcionTrabajo: data.descripcionObra || '',
       vencimientos: [{ fecha: '', importe: '', domiciliacion: '', oficina: '', numeroCuenta: '' }],
       deducciones: [],
-      estado: 'pendiente'
+      estado: 'pendiente',
+      origenPresupuesto: { id: inv.id, numero: inv.invoiceNumber } // trazabilidad presupuesto -> factura
     };
     delete factura.descripcionObra;
     delete factura.validez;
@@ -121,6 +149,31 @@ export default function InvoiceList({ docType = 'factura' }) {
     delete factura.condiciones;
     delete factura.condicionesComerciales;
     const savedId = await saveDocument('factura', factura);
+    // El presupuesto convertido pasa a "aceptado"
+    await updateDocumentFields('presupuesto', inv.id, { estado: 'aceptado' });
+    navigate(`/facturas/editar/${savedId}`);
+  };
+
+  // Factura rectificativa: serie R- propia, lineas en negativo y referencia a la original.
+  const handleRectificativa = async (inv) => {
+    if (!window.confirm(`Crear una factura rectificativa (abono) de la factura ${inv.invoiceNumber}?\nSe generara con las cantidades en negativo para anularla o corregirla.`)) return;
+    const { id: _, createdAt, updatedAt, ...data } = inv;
+    const all = await getAllDocuments('factura');
+    const serieR = all.filter(f => /^R-\d+$/.test(f.invoiceNumber || '')).length + 1;
+    const rectif = {
+      ...data,
+      invoiceNumber: 'R-' + String(serieR).padStart(4, '0'),
+      date: new Date().toISOString().split('T')[0],
+      lineas: (data.lineas || []).map(l => ({
+        ...l,
+        cantidad: l.cantidad ? String(-Math.abs(parseFloat(l.cantidad) || 0)) : l.cantidad
+      })),
+      deducciones: [],
+      estado: 'pendiente',
+      descripcionTrabajo: `FACTURA RECTIFICATIVA de la factura n.º ${inv.invoiceNumber} de fecha ${formatDateES(inv.date)}. ` + (data.descripcionTrabajo || ''),
+      rectificaA: { id: inv.id, numero: inv.invoiceNumber, fecha: inv.date }
+    };
+    const savedId = await saveDocument('factura', rectif);
     navigate(`/facturas/editar/${savedId}`);
   };
 
@@ -128,7 +181,7 @@ export default function InvoiceList({ docType = 'factura' }) {
   const handleExportCSV = () => {
     const sep = ';'; // Excel-ES uses semicolon
     const esNum = (n) => formatNumber(n); // "1.234,56"
-    const header = ['Numero', 'Fecha', 'Cliente', 'NIF', 'Base imponible', 'IVA %', 'Cuota IVA', 'Total', 'Estado'].join(sep);
+    const header = ['Numero', 'Fecha', 'Cliente', 'NIF', 'Base imponible', 'IVA %', 'Cuota IVA', 'R.E.', 'IRPF %', 'Cuota IRPF', 'Total', 'Estado'].join(sep);
     const rows = filtered.map(inv => {
       const iva = inv.iva || { tipo: 21 };
       const tax = calcInvoiceTaxBreakdown(inv.lineas || [], iva, inv.deducciones);
@@ -140,6 +193,9 @@ export default function InvoiceList({ docType = 'factura' }) {
         esNum(tax.base),
         tax.isISP ? 'ISP' : iva.tipo,
         esNum(tax.ivaAmount),
+        tax.reAmount ? esNum(tax.reAmount) : '',
+        tax.hasIRPF ? tax.irpfRate : '',
+        tax.hasIRPF ? '-' + esNum(tax.irpfAmount) : '',
         esNum(tax.total),
         getEstado(docType, inv).label
       ].join(sep);
@@ -313,8 +369,12 @@ export default function InvoiceList({ docType = 'factura' }) {
                           <Download size={16} className="text-gray-400 hover:text-green-600" />
                         </button>
                         <button onClick={() => handleShare(inv)}
-                          className="p-2 hover:bg-emerald-50 rounded-lg transition cursor-pointer" title="Compartir (WhatsApp / email)">
+                          className="p-2 hover:bg-emerald-50 rounded-lg transition cursor-pointer" title="Compartir (WhatsApp)">
                           <Share2 size={16} className="text-gray-400 hover:text-emerald-600" />
+                        </button>
+                        <button onClick={() => handleEmail(inv)}
+                          className="p-2 hover:bg-sky-50 rounded-lg transition cursor-pointer" title="Enviar por email (descarga el PDF y abre tu correo)">
+                          <Mail size={16} className="text-gray-400 hover:text-sky-600" />
                         </button>
                         <button onClick={() => handleDuplicate(inv.id)}
                           className="p-2 hover:bg-purple-50 rounded-lg transition cursor-pointer" title="Duplicar">
@@ -324,6 +384,12 @@ export default function InvoiceList({ docType = 'factura' }) {
                           <button onClick={() => handleConvertToFactura(inv)}
                             className="p-2 hover:bg-green-50 rounded-lg transition cursor-pointer" title="Convertir a factura">
                             <ArrowRightCircle size={16} className="text-gray-400 hover:text-green-600" />
+                          </button>
+                        )}
+                        {docType === 'factura' && !/^R-/.test(inv.invoiceNumber || '') && (
+                          <button onClick={() => handleRectificativa(inv)}
+                            className="p-2 hover:bg-orange-50 rounded-lg transition cursor-pointer" title="Crear rectificativa (abono)">
+                            <Undo2 size={16} className="text-gray-400 hover:text-orange-500" />
                           </button>
                         )}
                         <button onClick={() => setConfirmDelete(inv.id)}

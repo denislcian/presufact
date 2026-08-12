@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Trash2, Save, Eye, ArrowLeft, Copy } from 'lucide-react';
 import { getDefaultDocument, getNextNumber, saveDocument, getDocument, getEmisorSettings, getAllDocuments, DOC_TYPES } from '../db';
-import { calcLineSubtotal, calcLineTotal, formatNumber, formatDateES, getUnitLabel, UNIT_OPTIONS, IVA_OPTIONS, RE_RATES, calcInvoiceTaxBreakdown } from '../utils/formatters';
+import { calcLineSubtotal, calcLineTotal, formatNumber, formatDateES, getUnitLabel, UNIT_OPTIONS, IVA_OPTIONS, RE_RATES, calcInvoiceTaxBreakdown, calcDeduccionesTotal } from '../utils/formatters';
 import InvoicePreviewModal from './InvoicePreviewModal';
 import { generatePDF } from '../utils/pdfGenerator';
 import { autoBackup } from '../utils/backup';
@@ -16,7 +16,8 @@ export default function InvoiceForm({ docType = 'factura' }) {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
   const [validationError, setValidationError] = useState('');
-  const [allInvoices, setAllInvoices] = useState([]);
+  const [allInvoices, setAllInvoices] = useState([]); // solo documentos del MISMO tipo (deducciones)
+  const [clientDocs, setClientDocs] = useState([]);   // ambos tipos (autocompletado de clientes)
   const [savedJson, setSavedJson] = useState('');
   const saveRef = useRef(null);
   const dirtyRef = useRef(false);
@@ -43,11 +44,14 @@ export default function InvoiceForm({ docType = 'factura' }) {
       setSavedJson(JSON.stringify(fresh));
     }
     load();
-    // Load all documents of this type (for deducciones)
-    getAllDocuments(docType).then(setAllInvoices);
-    // Also load from the other type for client autocomplete
+    // Cargar los dos tipos a la vez (sin race): mismo tipo -> deducciones;
+    // ambos tipos -> autocompletado de clientes. Nunca mezclar en un solo
+    // estado: las tablas comparten ids autoincrementales y colisionarian.
     const otherType = docType === 'factura' ? 'presupuesto' : 'factura';
-    getAllDocuments(otherType).then(others => setAllInvoices(prev => [...prev, ...others]));
+    Promise.all([getAllDocuments(docType), getAllDocuments(otherType)]).then(([own, others]) => {
+      setAllInvoices(own);
+      setClientDocs([...own, ...others]);
+    });
   }, [id]);
 
   // Warn before closing the tab with unsaved changes
@@ -142,16 +146,26 @@ export default function InvoiceForm({ docType = 'factura' }) {
     }
     setValidationError('');
     setSaving(true);
+    let savedInvoice = null;
     try {
       const savedId = await saveDocument(docType, invoice);
-      const savedInvoice = { ...invoice, id: savedId };
+      savedInvoice = { ...invoice, id: savedId };
       setSavedJson(JSON.stringify(savedInvoice));
       if (!id) navigate(`${config.route}/editar/${savedId}`, { replace: true });
       else setInvoice(savedInvoice);
-      await generatePDF(savedInvoice);
       autoBackup();
     } catch (e) {
       console.error(e);
+      setValidationError('No se pudo guardar el documento: ' + (e?.message || 'error desconocido') + '. Tus cambios siguen en pantalla; prueba de nuevo o descarga un backup desde Ajustes.');
+      setSaving(false);
+      return;
+    }
+    // El PDF es secundario: si falla, el documento YA esta guardado
+    try {
+      await generatePDF(savedInvoice);
+    } catch (e) {
+      console.error(e);
+      setValidationError('Documento guardado, pero no se pudo generar el PDF: ' + (e?.message || 'error desconocido'));
     }
     setSaving(false);
   };
@@ -247,6 +261,21 @@ export default function InvoiceForm({ docType = 'factura' }) {
               </div>
             </div>
 
+            {docType === 'factura' && (
+              <label className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-3.5 cursor-pointer">
+                <input type="checkbox" className="mt-0.5 accent-blue-600 w-4 h-4"
+                  checked={!!invoice.esProforma}
+                  onChange={e => updateField('esProforma', e.target.checked)} />
+                <span className="text-sm">
+                  <span className="font-semibold text-gray-800">Marcar como factura proforma</span>
+                  <span className="block text-gray-500 mt-0.5">
+                    El PDF se titulará "FACTURA PROFORMA". Las proformas no son facturas a efectos fiscales
+                    (no están sujetas a Verifactu) — útil para enviar antes de emitir la factura definitiva.
+                  </span>
+                </span>
+              </label>
+            )}
+
             <h2 className="text-lg font-semibold text-gray-700 border-b pb-2 mt-6">Datos del Emisor</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -306,8 +335,8 @@ export default function InvoiceForm({ docType = 'factura' }) {
 
         {/* Cliente Tab */}
         {activeTab === 'cliente' && (() => {
-          // Build unique clients from all invoices
-          const knownClients = allInvoices
+          // Build unique clients from every saved document (facturas + presupuestos)
+          const knownClients = clientDocs
             .filter(inv => inv.cliente?.nombre?.trim())
             .reduce((acc, inv) => {
               const name = inv.cliente.nombre.trim();
@@ -461,10 +490,8 @@ export default function InvoiceForm({ docType = 'factura' }) {
         {/* Deducciones Tab */}
         {activeTab === 'deducciones' && (() => {
           const availableInvoices = allInvoices.filter(inv => inv.id !== invoice.id);
-          const totalDeducciones = (invoice.deducciones || []).reduce((sum, d) => {
-            if (d.lineas) return sum + d.lineas.filter(l => l.incluir !== false).reduce((s, l) => s + ((parseFloat(l.cantidad) || 0) * (parseFloat(l.precioUd) || 0)), 0);
-            return sum + (parseFloat(d.importe) || 0);
-          }, 0);
+          // Mismo calculo que el tab Impuestos y el PDF (respeta el formato espanol "13.556,47")
+          const totalDeducciones = calcDeduccionesTotal(invoice.deducciones);
 
           const handleSelectInvoice = (facturaId) => {
             const selInv = allInvoices.find(i => String(i.id) === facturaId);
