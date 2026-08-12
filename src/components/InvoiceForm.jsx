@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Trash2, Save, Eye, ArrowLeft, Copy } from 'lucide-react';
-import { getDefaultDocument, getNextNumber, saveDocument, getDocument, getEmisorSettings, getAllDocuments, DOC_TYPES } from '../db';
+import { getDefaultDocument, getNextNumber, saveDocument, getDocument, getEmisorSettings, getAllDocuments, getClientes, DOC_TYPES } from '../db';
+import { toast } from './Toaster';
 import { calcLineSubtotal, calcLineTotal, formatNumber, formatDateES, getUnitLabel, UNIT_OPTIONS, IVA_OPTIONS, RE_RATES, calcInvoiceTaxBreakdown, calcDeduccionesTotal } from '../utils/formatters';
 import InvoicePreviewModal from './InvoicePreviewModal';
 import SignaturePad from './SignaturePad';
@@ -49,10 +50,12 @@ export default function InvoiceForm({ docType = 'factura' }) {
     // ambos tipos -> autocompletado de clientes. Nunca mezclar en un solo
     // estado: las tablas comparten ids autoincrementales y colisionarian.
     const otherType = docType === 'factura' ? 'presupuesto' : 'factura';
-    Promise.all([getAllDocuments(docType), getAllDocuments(otherType)]).then(([own, others]) => {
-      setAllInvoices(own);
-      setClientDocs([...own, ...others]);
-    });
+    Promise.all([getAllDocuments(docType), getAllDocuments(otherType), getClientes().catch(() => [])])
+      .then(([own, others, libreta]) => {
+        setAllInvoices(own);
+        // la libreta de clientes entra como pseudo-documentos al autocompletado
+        setClientDocs([...libreta.map(c => ({ cliente: c })), ...own, ...others]);
+      });
   }, [id]);
 
   // Warn before closing the tab with unsaved changes
@@ -154,6 +157,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
       setSavedJson(JSON.stringify(savedInvoice));
       if (!id) navigate(`${config.route}/editar/${savedId}`, { replace: true });
       else setInvoice(savedInvoice);
+      toast(`${config.label} ${savedInvoice.invoiceNumber} guardado — el PDF se está descargando`);
       autoBackup();
     } catch (e) {
       console.error(e);

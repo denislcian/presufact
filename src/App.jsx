@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation, Link } from 'react-router-dom';
-import { FileText, Receipt, ClipboardList, Settings, Home, Calculator } from 'lucide-react';
+import { FileText, Receipt, ClipboardList, Settings, Home, Calculator, Users } from 'lucide-react';
+import ClientManager from './components/ClientManager';
+import Toaster from './components/Toaster';
 import LandingPage from './pages/LandingPage';
 import VerifactuPage from './pages/VerifactuPage';
 import SeoLanding from './pages/SeoLanding';
@@ -53,6 +55,7 @@ function AppLayout() {
       <OverdueBanner />
       <BackupNudge />
       <InstallPrompt />
+      <Toaster />
       {/* Top nav bar */}
       <nav className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-2">
@@ -73,6 +76,7 @@ function AppLayout() {
             { to: '/app', label: 'Inicio', icon: Home, end: true },
             { to: '/facturas', label: 'Facturas', icon: Receipt },
             { to: '/presupuestos', label: 'Presupuestos', icon: ClipboardList },
+            { to: '/clientes', label: 'Clientes', icon: Users },
             { to: '/impuestos', label: 'Impuestos', icon: Calculator },
           ].map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end}
@@ -139,6 +143,7 @@ export default function App() {
         <Route path="/presupuestos" element={<InvoiceList docType="presupuesto" />} />
         <Route path="/presupuestos/nuevo" element={<InvoiceForm docType="presupuesto" />} />
         <Route path="/presupuestos/editar/:id" element={<InvoiceForm docType="presupuesto" />} />
+        <Route path="/clientes" element={<ClientManager />} />
         <Route path="/impuestos" element={<TaxSummary />} />
         <Route path="/ajustes" element={<EmisorSettings />} />
       </Route>

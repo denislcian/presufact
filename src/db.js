@@ -29,6 +29,13 @@ db.version(3).stores({
   settings: 'key'
 });
 
+db.version(4).stores({
+  invoices: '++id, invoiceNumber, date, clientName, createdAt, updatedAt',
+  presupuestos: '++id, invoiceNumber, date, clientName, createdAt, updatedAt',
+  clientes: '++id, nombre, nif',
+  settings: 'key'
+});
+
 // ============ CONSTANTS ============
 
 export const DOC_TYPES = {
@@ -173,6 +180,8 @@ export async function saveDocument(docType, doc) {
   } else {
     result = await table.add({ ...doc, clientName: doc.cliente?.nombre || '', createdAt: now, updatedAt: now });
   }
+  // La libreta de clientes se alimenta sola de los documentos guardados
+  try { await upsertClienteFromDoc(doc.cliente); } catch { /* nunca bloquear el guardado */ }
   triggerAutoBackup();
   return result;
 }
@@ -216,6 +225,61 @@ export async function duplicateDocument(docType, id) {
 
 export async function getDocumentCount(docType) {
   return await getTable(docType).count();
+}
+
+// ============ CLIENTES ============
+
+export async function getClientes() {
+  return await db.clientes.orderBy('nombre').toArray();
+}
+
+export async function saveCliente(cliente) {
+  const now = new Date().toISOString();
+  let result;
+  if (cliente.id) {
+    await db.clientes.update(cliente.id, { ...cliente, updatedAt: now });
+    result = cliente.id;
+  } else {
+    result = await db.clientes.add({ ...cliente, createdAt: now, updatedAt: now });
+  }
+  triggerAutoBackup();
+  return result;
+}
+
+export async function deleteCliente(id) {
+  const result = await db.clientes.delete(id);
+  triggerAutoBackup();
+  return result;
+}
+
+// Alta/actualizacion silenciosa al guardar un documento: la libreta se
+// mantiene sola. Solo completa campos vacios, nunca pisa datos editados.
+export async function upsertClienteFromDoc(cliente) {
+  const nombre = (cliente?.nombre || '').trim();
+  if (!nombre) return;
+  const existing = await db.clientes.where('nombre').equals(nombre).first();
+  const CAMPOS = ['nif', 'direccion', 'cp', 'ciudad', 'provincia', 'email', 'telefono'];
+  if (existing) {
+    const patch = {};
+    for (const k of CAMPOS) {
+      if (cliente[k] && !existing[k]) patch[k] = cliente[k];
+    }
+    if (Object.keys(patch).length) await db.clientes.update(existing.id, patch);
+  } else {
+    const nuevo = { nombre, createdAt: new Date().toISOString() };
+    for (const k of CAMPOS) nuevo[k] = cliente[k] || '';
+    await db.clientes.add(nuevo);
+  }
+}
+
+// Siembra inicial: construye la libreta desde los documentos ya guardados
+export async function seedClientesFromDocs() {
+  const [facturas, presupuestos] = await Promise.all([
+    db.invoices.toArray(), db.presupuestos.toArray()
+  ]);
+  for (const doc of [...facturas, ...presupuestos]) {
+    await upsertClienteFromDoc(doc.cliente);
+  }
 }
 
 // Actualiza campos sueltos de un documento sin tocar el resto

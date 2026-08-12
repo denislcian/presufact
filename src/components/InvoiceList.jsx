@@ -5,6 +5,7 @@ import ImportInvoice from './ImportInvoice';
 import { getAllDocuments, deleteDocument, duplicateDocument, DOC_TYPES, getNextNumber, saveDocument, ESTADOS, cycleEstado, updateDocumentFields } from '../db';
 import { formatNumber, formatDateES, calcInvoiceTaxBreakdown } from '../utils/formatters';
 import { generatePDF, generatePDFFile } from '../utils/pdfGenerator';
+import { toast } from './Toaster';
 
 // Total real del documento: lineas - deducciones + IVA
 function docTotal(inv) {
@@ -61,11 +62,13 @@ export default function InvoiceList({ docType = 'factura' }) {
   const handleDelete = async (id) => {
     await deleteDocument(docType, id);
     setConfirmDelete(null);
+    toast(`${config.label} eliminado (hay backup automático previo)`, 'info');
     load();
   };
 
   const handleDuplicate = async (id) => {
     await duplicateDocument(docType, id);
+    toast(`${config.label} duplicado con fecha de hoy y número nuevo`);
     load();
   };
 
@@ -97,7 +100,9 @@ export default function InvoiceList({ docType = 'factura' }) {
   };
 
   const handleCycleEstado = async (id) => {
-    await cycleEstado(docType, id);
+    const next = await cycleEstado(docType, id);
+    const label = ESTADOS[docType].find(e => e.key === next)?.label || next;
+    toast(`Estado cambiado a "${label}"`);
     load();
   };
 
@@ -151,6 +156,7 @@ export default function InvoiceList({ docType = 'factura' }) {
       a.download = `${config.labelPlural.toLowerCase()}-${yearFilter === 'todos' ? 'todas' : yearFilter}.zip`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      toast(`ZIP con ${filtered.length} PDF(s) + CSV descargado`);
     } finally {
       setZipping(false);
     }
@@ -179,6 +185,7 @@ export default function InvoiceList({ docType = 'factura' }) {
     const savedId = await saveDocument('factura', factura);
     // El presupuesto convertido pasa a "aceptado"
     await updateDocumentFields('presupuesto', inv.id, { estado: 'aceptado' });
+    toast(`Convertido en factura ${nextNum} — el presupuesto queda aceptado`);
     navigate(`/facturas/editar/${savedId}`);
   };
 
