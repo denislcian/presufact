@@ -42,6 +42,19 @@ export default function InvoiceForm({ docType = 'factura' }) {
       const emisor = await getEmisorSettings();
       const nextNum = await getNextNumber(docType);
       const fresh = { ...getDefaultDocument(docType, emisor), emisor, invoiceNumber: nextNum };
+      // "Nueva factura para este cliente" desde la libreta: cliente pre-rellenado.
+      // No se consume al leer (el doble montaje de React lo perderia): caduca a los 10 s.
+      try {
+        const raw = sessionStorage.getItem('presufact-prefill-cliente');
+        if (raw) {
+          const { c, t } = JSON.parse(raw);
+          if (c && Date.now() - (t || 0) < 10000) {
+            fresh.cliente = { ...fresh.cliente, nombre: c.nombre || '', nif: c.nif || '', direccion: c.direccion || '', cp: c.cp || '', ciudad: c.ciudad || '', provincia: c.provincia || '', email: c.email || '' };
+          } else {
+            sessionStorage.removeItem('presufact-prefill-cliente');
+          }
+        }
+      } catch { /* prefill opcional */ }
       setInvoice(fresh);
       setSavedJson(JSON.stringify(fresh));
     }
