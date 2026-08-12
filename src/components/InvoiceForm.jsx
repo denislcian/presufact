@@ -4,6 +4,7 @@ import { Plus, Trash2, Save, Eye, ArrowLeft, Copy } from 'lucide-react';
 import { getDefaultDocument, getNextNumber, saveDocument, getDocument, getEmisorSettings, getAllDocuments, DOC_TYPES } from '../db';
 import { calcLineSubtotal, calcLineTotal, formatNumber, formatDateES, getUnitLabel, UNIT_OPTIONS, IVA_OPTIONS, RE_RATES, calcInvoiceTaxBreakdown, calcDeduccionesTotal } from '../utils/formatters';
 import InvoicePreviewModal from './InvoicePreviewModal';
+import SignaturePad from './SignaturePad';
 import { generatePDF } from '../utils/pdfGenerator';
 import { autoBackup } from '../utils/backup';
 
@@ -172,6 +173,21 @@ export default function InvoiceForm({ docType = 'factura' }) {
   saveRef.current = handleSave;
 
   const totalLineas = invoice.lineas.reduce((sum, l) => sum + calcLineTotal(l), 0);
+
+  // Catalogo de conceptos: lineas unicas ya usadas en cualquier documento,
+  // para autocompletar descripcion + precio + unidad + IVA al facturar.
+  const knownConcepts = [];
+  {
+    const seen = new Set();
+    for (const d of clientDocs) {
+      for (const l of (d.lineas || [])) {
+        const desc = (l.descripcion || '').trim();
+        if (desc.length < 3 || seen.has(desc)) continue;
+        seen.add(desc);
+        knownConcepts.push({ descripcion: desc, precioUd: l.precioUd, unidad: l.unidad, articulo: l.articulo, iva: l.iva });
+      }
+    }
+  }
 
   const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none transition";
   const labelClass = "block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide";
@@ -353,6 +369,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
               if (found.cp) updateField('cliente.cp', found.cp);
               if (found.ciudad) updateField('cliente.ciudad', found.ciudad);
               if (found.provincia) updateField('cliente.provincia', found.provincia);
+              if (found.email) updateField('cliente.email', found.email);
             }
           };
 
@@ -400,6 +417,13 @@ export default function InvoiceForm({ docType = 'factura' }) {
                 <label className={labelClass}>Provincia</label>
                 <input className={inputClass} value={invoice.cliente.provincia} onChange={e => updateField('cliente.provincia', e.target.value)} />
               </div>
+              <div className="col-span-2">
+                <label className={labelClass}>Email</label>
+                <input className={inputClass} type="email" value={invoice.cliente.email || ''}
+                  onChange={e => updateField('cliente.email', e.target.value)}
+                  placeholder="cliente@empresa.es" />
+                <p className="text-xs text-gray-400 mt-1">Con email, el botón "Enviar por email" abre tu correo ya dirigido a este cliente</p>
+              </div>
             </div>
           </div>
           );
@@ -414,6 +438,11 @@ export default function InvoiceForm({ docType = 'factura' }) {
                 <Plus size={14} /> Añadir línea
               </button>
             </div>
+
+            {/* Conceptos ya usados: el navegador los sugiere al teclear la descripcion */}
+            <datalist id="conceptos-guardados">
+              {knownConcepts.slice(0, 200).map((c, i) => <option key={i} value={c.descripcion} />)}
+            </datalist>
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm table-fixed">
@@ -440,7 +469,18 @@ export default function InvoiceForm({ docType = 'factura' }) {
                       </td>
                       <td className="px-1 py-1">
                         <input className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" value={linea.descripcion}
-                          onChange={e => updateField(`lineas.${idx}.descripcion`, e.target.value)} />
+                          list="conceptos-guardados"
+                          onChange={e => {
+                            updateField(`lineas.${idx}.descripcion`, e.target.value);
+                            // Autocompletar precio/unidad/IVA si coincide con un concepto ya usado
+                            const c = knownConcepts.find(k => k.descripcion === e.target.value);
+                            if (c) {
+                              if (c.precioUd) updateField(`lineas.${idx}.precioUd`, c.precioUd);
+                              if (c.unidad) updateField(`lineas.${idx}.unidad`, c.unidad);
+                              if (c.articulo && !linea.articulo) updateField(`lineas.${idx}.articulo`, c.articulo);
+                              if (c.iva !== undefined) updateField(`lineas.${idx}.iva`, c.iva);
+                            }
+                          }} />
                       </td>
                       <td className="px-1 py-1">
                         <select className="w-full px-1 py-1.5 border border-gray-200 rounded text-sm text-center bg-white"
@@ -904,6 +944,15 @@ export default function InvoiceForm({ docType = 'factura' }) {
             <p className="text-xs text-gray-500">Estas condiciones aparecen en todos los presupuestos. Puedes editarlas para este presupuesto en particular.</p>
             <div>
               <textarea className={inputClass + ' h-64 text-xs leading-relaxed'} value={invoice.condicionesComerciales || ''} onChange={e => updateField('condicionesComerciales', e.target.value)} />
+            </div>
+
+            {/* Firma de aceptacion del cliente (canvas tactil) */}
+            <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-4">
+              <SignaturePad
+                label="Firma del cliente (aceptación)"
+                value={invoice.firmaCliente || null}
+                onChange={(dataUrl) => updateField('firmaCliente', dataUrl)}
+              />
             </div>
           </div>
         )}

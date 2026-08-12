@@ -12,6 +12,7 @@ import TaxSummary from './components/TaxSummary';
 import RecoveryBanner from './components/RecoveryBanner';
 import InstallPrompt from './components/InstallPrompt';
 import BackupNudge from './components/BackupNudge';
+import OverdueBanner from './components/OverdueBanner';
 import Onboarding from './components/Onboarding';
 import { isOnboarded, getEmisorSettings } from './db';
 
@@ -49,6 +50,7 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-gray-100">
       <RecoveryBanner />
+      <OverdueBanner />
       <BackupNudge />
       <InstallPrompt />
       {/* Top nav bar */}
@@ -122,6 +124,11 @@ export default function App() {
       <Route path="/verifactu" element={<VerifactuPage />} />
       <Route path="/generador-de-facturas" element={<SeoLanding variant="facturas" />} />
       <Route path="/generador-de-presupuestos" element={<SeoLanding variant="presupuestos" />} />
+      <Route path="/presupuesto-de-obra" element={<SeoLanding variant="obra" />} />
+      <Route path="/presupuesto-reforma" element={<SeoLanding variant="reforma" />} />
+      <Route path="/presupuesto-fontaneria" element={<SeoLanding variant="fontaneria" />} />
+      <Route path="/presupuesto-electricista" element={<SeoLanding variant="electricista" />} />
+      <Route path="/presupuesto-pintura" element={<SeoLanding variant="pintura" />} />
 
       {/* Application area (onboarding-gated) */}
       <Route element={<AppLayout />}>

@@ -57,7 +57,7 @@ function sanitizePdfString(s) {
 }
 
 function sanitizeForPdf(value, key) {
-  if (key === 'logo') return value; // dataURL: no tocar
+  if (key === 'logo' || key === 'firmaCliente') return value; // dataURLs: no tocar
   if (typeof value === 'string') return sanitizePdfString(value);
   if (Array.isArray(value)) return value.map(v => sanitizeForPdf(v));
   if (value && typeof value === 'object') {
@@ -701,6 +701,14 @@ async function buildPDF(rawInvoice) {
     zoneLabel('Conformidad', X_LEFT, y);
     hairline(y + 2, X_LEFT, X_RIGHT);
     y += 24;
+
+    // Firma del cliente capturada en pantalla: se coloca sobre su linea
+    if (invoice.firmaCliente && /^data:image\/png/.test(invoice.firmaCliente)) {
+      try {
+        // caja 50x18 mm centrada sobre la linea del cliente, apoyada en ella
+        doc.addImage(invoice.firmaCliente, 'PNG', 127, y - 19, 50, 18);
+      } catch (e) { console.warn('No se pudo incrustar la firma:', e); }
+    }
 
     doc.setDrawColor(INK[0], INK[1], INK[2]);
     doc.setLineWidth(0.3);

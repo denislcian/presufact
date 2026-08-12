@@ -21,6 +21,31 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://presufactu.vercel.app/presupuesto-de-obra</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://presufactu.vercel.app/presupuesto-reforma</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://presufactu.vercel.app/presupuesto-fontaneria</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://presufactu.vercel.app/presupuesto-electricista</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://presufactu.vercel.app/presupuesto-pintura</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://presufactu.vercel.app/app</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

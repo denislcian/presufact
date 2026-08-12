@@ -47,6 +47,38 @@ const CONTENT = {
   },
 };
 
+// Landings long-tail por oficio: mismo esqueleto, contenido por gremio.
+const OFICIOS = {
+  obra: { kw: 'presupuesto de obra', nombre: 'obra y construcción', unidades: 'm², metros lineales y partidas de obra', ejemplo: 'demolición, albañilería, estructura, cerramientos y acabados' },
+  reforma: { kw: 'presupuesto de reforma', nombre: 'reformas', unidades: 'm², unidades y horas', ejemplo: 'reforma de baño, cocina, pintura y suelos' },
+  fontaneria: { kw: 'presupuesto de fontanería', nombre: 'fontanería', unidades: 'unidades, metros lineales y horas', ejemplo: 'sustitución de tuberías, sanitarios, calderas y grifería' },
+  electricista: { kw: 'presupuesto de electricista', nombre: 'instalaciones eléctricas', unidades: 'puntos de luz, unidades y horas', ejemplo: 'cuadros eléctricos, puntos de luz, enchufes y boletines' },
+  pintura: { kw: 'presupuesto de pintura', nombre: 'pintura', unidades: 'm² y horas', ejemplo: 'pintura lisa, gotelé, alisado de paredes y esmaltado' },
+};
+
+for (const [key, o] of Object.entries(OFICIOS)) {
+  CONTENT[key] = {
+    title: `${o.kw.charAt(0).toUpperCase() + o.kw.slice(1)} gratis en PDF: plantilla y generador · Presufact`,
+    h1: `Haz tu ${o.kw} en PDF, gratis y en minutos`,
+    intro: `Crea presupuestos profesionales de ${o.nombre} con tu logo, partidas en ${o.unidades}, condiciones comerciales y zona de firmas. Sin registro, sin límites y con tus datos siempre en tu dispositivo. Cuando te lo acepten, conviértelo en factura con un clic.`,
+    bullets: [
+      `Partidas con las unidades reales de tu oficio: ${o.unidades}`,
+      `Pensado para trabajos de ${o.ejemplo}`,
+      'Condiciones comerciales y validez del presupuesto incluidas en el PDF',
+      'Zona de firmas para la aceptación del cliente',
+      'Convertir a factura en un clic cuando te lo acepten',
+      'Con tu logo y tu color de marca — sin marca de agua de terceros',
+    ],
+    faq: [
+      { q: '¿Es de verdad gratis?', a: 'Sí: sin límite de presupuestos, sin registro y sin funciones de pago. La app funciona entera en tu navegador, por eso no hay cuota que cobrar.' },
+      { q: `¿Puedo desglosar el ${o.kw} por partidas?`, a: `Sí: cada partida lleva concepto, cantidad (${o.unidades}), precio unitario, descuento opcional y su importe. Los totales, el IVA y la retención de IRPF se calculan solos.` },
+      { q: '¿Los presupuestos están sujetos a Verifactu?', a: 'No. Los presupuestos no son facturas y quedan fuera del reglamento Verifactu.' },
+    ],
+    cta: 'Crear mi presupuesto gratis',
+    related: { to: '/generador-de-presupuestos', label: 'Generador de presupuestos gratis' },
+  };
+}
+
 export default function SeoLanding({ variant = 'facturas' }) {
   const navigate = useNavigate();
   const c = CONTENT[variant];
@@ -116,10 +148,18 @@ export default function SeoLanding({ variant = 'facturas' }) {
           </div>
         </div>
 
-        <div className="mt-10 text-sm">
-          <Link to={c.related.to} className="text-accent underline hover:no-underline">{c.related.label}</Link>
-          {' · '}
-          <Link to="/verifactu" className="text-accent underline hover:no-underline">Guía Verifactu 2027</Link>
+        <div className="mt-10 text-sm space-y-2">
+          <div>
+            <Link to={c.related.to} className="text-accent underline hover:no-underline">{c.related.label}</Link>
+            {' · '}
+            <Link to="/verifactu" className="text-accent underline hover:no-underline">Guía Verifactu 2027</Link>
+          </div>
+          <div className="text-gray-500">
+            Presupuestos por oficio:{' '}
+            {[['/presupuesto-de-obra', 'obra'], ['/presupuesto-reforma', 'reforma'], ['/presupuesto-fontaneria', 'fontanería'], ['/presupuesto-electricista', 'electricista'], ['/presupuesto-pintura', 'pintura']].map(([to, label], i) => (
+              <span key={to}>{i > 0 && ' · '}<Link to={to} className="hover:text-accent underline">{label}</Link></span>
+            ))}
+          </div>
         </div>
 
         <div className="mt-12 bg-primary rounded-2xl p-8 text-center">

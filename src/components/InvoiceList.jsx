@@ -125,7 +125,35 @@ export default function InvoiceList({ docType = 'factura' }) {
       '',
       'Un saludo'
     ].join('\n');
-    window.location.href = `mailto:?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+    const to = encodeURIComponent(inv.cliente?.email || '');
+    window.location.href = `mailto:${to}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  };
+
+  // ZIP para la gestoria: todos los PDFs de la vista filtrada + el CSV, en un archivo
+  const [zipping, setZipping] = useState(false);
+  const handleExportZIP = async () => {
+    if (zipping || filtered.length === 0) return;
+    setZipping(true);
+    try {
+      const { default: JSZip } = await import('jszip');
+      const zip = new JSZip();
+      for (const inv of filtered) {
+        try {
+          const file = await generatePDFFile(inv);
+          zip.file(file.name, file);
+        } catch (e) { console.warn('PDF fallo para', inv.invoiceNumber, e); }
+      }
+      zip.file(`${config.labelPlural.toLowerCase()}.csv`, buildCSV());
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${config.labelPlural.toLowerCase()}-${yearFilter === 'todos' ? 'todas' : yearFilter}.zip`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } finally {
+      setZipping(false);
+    }
   };
 
   const handleConvertToFactura = async (inv) => {
@@ -178,7 +206,7 @@ export default function InvoiceList({ docType = 'factura' }) {
   };
 
   // CSV export of the filtered view (for the gestoria)
-  const handleExportCSV = () => {
+  const buildCSV = () => {
     const sep = ';'; // Excel-ES uses semicolon
     const esNum = (n) => formatNumber(n); // "1.234,56"
     const header = ['Numero', 'Fecha', 'Cliente', 'NIF', 'Base imponible', 'IVA %', 'Cuota IVA', 'R.E.', 'IRPF %', 'Cuota IRPF', 'Total', 'Estado'].join(sep);
@@ -200,8 +228,11 @@ export default function InvoiceList({ docType = 'factura' }) {
         getEstado(docType, inv).label
       ].join(sep);
     });
-    const csv = '﻿' + [header, ...rows].join('\r\n'); // BOM for Excel
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    return '﻿' + [header, ...rows].join('\r\n'); // BOM for Excel
+  };
+
+  const handleExportCSV = () => {
+    const blob = new Blob([buildCSV()], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -232,6 +263,11 @@ export default function InvoiceList({ docType = 'factura' }) {
             className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium text-sm disabled:opacity-40"
             title="Exportar listado a CSV (Excel)">
             <FileSpreadsheet size={18} /> CSV
+          </button>
+          <button onClick={handleExportZIP} disabled={filtered.length === 0 || zipping}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium text-sm disabled:opacity-40"
+            title="Descargar un ZIP con todos los PDFs de la vista + el CSV — listo para tu gestoría">
+            <Download size={18} /> {zipping ? 'Generando...' : 'ZIP gestoría'}
           </button>
           <button onClick={() => setShowImport(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium text-sm">
