@@ -93,7 +93,14 @@ function AppLayout() {
           <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
             <FileText className="w-5 h-5 text-white" />
           </div>
-          {!collapsed && <span className="text-base font-bold text-gray-800 truncate block min-w-0">{companyName}</span>}
+          {!collapsed && (
+            <span className={`font-bold text-gray-800 block min-w-0 leading-tight break-words ${
+              companyName.length <= 12 ? 'text-base' : companyName.length <= 22 ? 'text-[13px]' : 'text-xs'
+            }`}
+              style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {companyName}
+            </span>
+          )}
         </>
       )}
     </button>
