@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Trash2, Copy, Edit3, FileText, Download, Calendar, Euro, Upload, ArrowRightCircle, FileSpreadsheet, Clock, Share2, Mail, Undo2 } from 'lucide-react';
 import ImportInvoice from './ImportInvoice';
-import { getAllDocuments, deleteDocument, duplicateDocument, DOC_TYPES, getNextNumber, saveDocument, ESTADOS, cycleEstado, updateDocumentFields } from '../db';
+import { getAllDocuments, deleteDocument, duplicateDocument, DOC_TYPES, getNextNumber, saveDocument, ESTADOS, cycleEstado, updateDocumentFields, isPendienteCobro } from '../db';
 import { formatNumber, formatDateES, calcInvoiceTaxBreakdown } from '../utils/formatters';
 import { generatePDF, generatePDFFile } from '../utils/pdfGenerator';
 import { toast } from './Toaster';
@@ -16,8 +16,8 @@ function docTotal(inv) {
 function getEstado(docType, inv) {
   const list = ESTADOS[docType];
   const estado = list.find(e => e.key === (inv.estado || 'pendiente')) || list[0];
-  // Facturas pendientes con vencimiento pasado se muestran como "Vencida" (rojo)
-  if (docType === 'factura' && estado.key === 'pendiente') {
+  // Facturas sin cobrar con vencimiento pasado se muestran como "Vencida" (rojo)
+  if (docType === 'factura' && isPendienteCobro(inv) && estado.key !== 'rechazada') {
     const venc = inv.vencimientos?.[0]?.fecha;
     if (venc && venc < new Date().toISOString().split('T')[0]) {
       return { ...estado, label: 'Vencida', classes: 'bg-red-100 text-red-700' };
@@ -254,7 +254,7 @@ export default function InvoiceList({ docType = 'factura' }) {
   const statsBase = yearFilter === 'todos' ? invoices : invoices.filter(inv => (inv.date || '').slice(0, 4) === yearFilter);
   const totalFacturado = statsBase.reduce((sum, inv) => sum + docTotal(inv), 0);
   const totalPendiente = docType === 'factura'
-    ? statsBase.filter(inv => (inv.estado || 'pendiente') === 'pendiente').reduce((sum, inv) => sum + docTotal(inv), 0)
+    ? statsBase.filter(isPendienteCobro).reduce((sum, inv) => sum + docTotal(inv), 0)
     : statsBase.filter(inv => (inv.estado || 'pendiente') === 'pendiente').reduce((sum, inv) => sum + docTotal(inv), 0);
 
   return (

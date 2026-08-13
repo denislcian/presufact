@@ -830,6 +830,15 @@ export default function InvoiceForm({ docType = 'factura' }) {
                       ))}
                     </select>
                     <p className="text-xs text-gray-400 mt-1">Puedes fijar un IVA distinto en líneas concretas desde la pestaña Líneas (columna IVA).</p>
+                    <details className="mt-1.5 text-xs text-gray-500">
+                      <summary className="cursor-pointer text-accent hover:underline">¿Qué tipo de IVA me toca?</summary>
+                      <div className="mt-1.5 bg-blue-50 border border-blue-100 rounded-lg p-2.5 leading-relaxed">
+                        <strong>21%</strong> es el general (obras, reformas, servicios profesionales, casi todo).
+                        <strong> 10%</strong>: hostelería, transporte, reformas de vivienda con más de 2 años (si el material que pones no pasa del 40% del total).
+                        <strong> 4%</strong>: pan, leche, libros, medicamentos, VPO.
+                        <strong> 0%/Exento</strong>: formación reglada, sanidad, seguros. Si dudas, tu actividad casi seguro es al 21% — y confírmalo con tu gestor.
+                      </div>
+                    </details>
                   </div>
                   <div>
                     <label className={labelClass}>Retencion IRPF</label>
@@ -843,6 +852,16 @@ export default function InvoiceForm({ docType = 'factura' }) {
                       <option value={2}>2%</option>
                     </select>
                     <p className="text-xs text-gray-400 mt-1">Se resta del total. Aplica si eres autonomo facturando a empresas o profesionales.</p>
+                    <details className="mt-1.5 text-xs text-gray-500">
+                      <summary className="cursor-pointer text-accent hover:underline">¿Tengo que retener IRPF?</summary>
+                      <div className="mt-1.5 bg-blue-50 border border-blue-100 rounded-lg p-2.5 leading-relaxed">
+                        Solo si eres <strong>profesional</strong> (actividad en la sección 2ª del IAE: consultores, diseñadores,
+                        abogados...) y facturas a <strong>empresas o a otros autónomos</strong>. El cliente ingresa esa parte a
+                        Hacienda por ti — por eso se resta del total. <strong>15%</strong> es el general; <strong>7%</strong> el
+                        año que te das de alta y los dos siguientes. Si facturas a particulares o tu actividad es empresarial
+                        (obra, comercio, talleres): sin retención.
+                      </div>
+                    </details>
                   </div>
                 </div>
                 <div className="space-y-3 pt-6">
@@ -852,12 +871,20 @@ export default function InvoiceForm({ docType = 'factura' }) {
                       onChange={e => updateField('iva.recargoEquivalencia', e.target.checked)} />
                     <span className="text-sm">Recargo de Equivalencia ({RE_RATES[ivaConfig.tipo] || 0}%)</span>
                   </label>
+                  <p className="text-xs text-gray-400 -mt-1 ml-7">
+                    Solo si tu cliente es un <strong>comerciante minorista</strong> en ese régimen (tiendas que venden
+                    sin transformar el producto). Se suma a su factura y lo ingresas tú. Si no lo tienes claro, pregúntale.
+                  </p>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent"
                       checked={ivaConfig.inversionSujetoPasivo || false}
                       onChange={e => updateField('iva.inversionSujetoPasivo', e.target.checked)} />
                     <span className="text-sm">Inversion del Sujeto Pasivo (Art.84 Ley IVA)</span>
                   </label>
+                  <p className="text-xs text-gray-400 -mt-1 ml-7">
+                    Típico en <strong>subcontratas de construcción</strong> entre empresas: la factura va sin IVA
+                    y es el cliente quien lo declara. La nota legal se añade sola al PDF.
+                  </p>
                 </div>
               </div>
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Search, Edit3, Trash2, Users, X, Save, FileText, Receipt, Upload } from 'lucide-react';
 import { useRef } from 'react';
-import { getClientes, saveCliente, deleteCliente, seedClientesFromDocs, getAllDocuments, upsertClienteFromDoc } from '../db';
+import { getClientes, saveCliente, deleteCliente, seedClientesFromDocs, getAllDocuments, upsertClienteFromDoc, isPendienteCobro } from '../db';
 import { formatNumber, formatDateES, calcInvoiceTaxBreakdown } from '../utils/formatters';
 import { parseClientesCSV } from '../utils/csvClientes';
 import { toast } from './Toaster';
@@ -75,7 +75,7 @@ export default function ClientManager() {
       st.facturado += total;
       st.nFact += 1;
       if ((d.estado || 'pendiente') === 'cobrada') st.cobrado += total;
-      else st.pendiente += total;
+      else if (isPendienteCobro(d)) st.pendiente += total;
       if ((d.date || '') > st.ultima) st.ultima = d.date;
       (byClient[n] = byClient[n] || []).push({ ...d, _tipo: 'factura' });
     }

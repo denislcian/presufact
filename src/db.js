@@ -290,10 +290,15 @@ export async function updateDocumentFields(docType, id, fields) {
 }
 
 // Estados disponibles por tipo de documento
+// Estados alineados con el flujo del RD 238/2026 (aceptacion/rechazo y pago):
+// el historial fechado queda registrado en cada documento (estadoHistorial).
 export const ESTADOS = {
   factura: [
     { key: 'pendiente', label: 'Pendiente', classes: 'bg-amber-100 text-amber-700' },
-    { key: 'cobrada', label: 'Cobrada', classes: 'bg-green-100 text-green-700' }
+    { key: 'enviada', label: 'Enviada', classes: 'bg-sky-100 text-sky-700' },
+    { key: 'aceptada', label: 'Aceptada', classes: 'bg-blue-100 text-blue-700' },
+    { key: 'cobrada', label: 'Cobrada', classes: 'bg-green-100 text-green-700' },
+    { key: 'rechazada', label: 'Rechazada', classes: 'bg-red-100 text-red-600' }
   ],
   presupuesto: [
     { key: 'pendiente', label: 'Pendiente', classes: 'bg-amber-100 text-amber-700' },
@@ -302,7 +307,12 @@ export const ESTADOS = {
   ]
 };
 
-// Cycle to the next estado for a document
+// Una factura esta pendiente de cobro salvo que este cobrada o rechazada
+export function isPendienteCobro(doc) {
+  return !['cobrada', 'rechazada'].includes(doc?.estado || 'pendiente');
+}
+
+// Cycle to the next estado for a document (con historial fechado)
 export async function cycleEstado(docType, id) {
   const table = getTable(docType);
   const doc = await table.get(id);
@@ -310,7 +320,9 @@ export async function cycleEstado(docType, id) {
   const estados = ESTADOS[docType].map(e => e.key);
   const current = estados.indexOf(doc.estado || 'pendiente');
   const next = estados[(current + 1) % estados.length];
-  await table.update(id, { estado: next, updatedAt: new Date().toISOString() });
+  const now = new Date().toISOString();
+  const historial = [...(doc.estadoHistorial || []), { estado: next, fecha: now }];
+  await table.update(id, { estado: next, estadoHistorial: historial, updatedAt: now });
   triggerAutoBackup();
   return next;
 }
@@ -326,13 +338,69 @@ export const duplicateInvoice = (id) => duplicateDocument('factura', id);
 
 // ============ SETTINGS ============
 
+// ============ MULTI-EMPRESA ============
+// Varias empresas emisoras gratis e ilimitadas (los SaaS cobran por cada una).
+// Estructura: settings['emisores'] = { list: [...], active: idx }.
+// La clave legacy 'emisor' se mantiene sincronizada con la activa para
+// compatibilidad (logo, backups antiguos, onboarding).
+
+async function getEmisoresRaw() {
+  const s = await db.settings.get('emisores');
+  if (s?.value?.list?.length) return s.value;
+  // migracion transparente desde el emisor unico
+  const old = await db.settings.get('emisor');
+  return { list: old?.value ? [old.value] : [], active: 0 };
+}
+
+async function putEmisoresRaw(raw) {
+  raw.active = Math.max(0, Math.min(raw.active, raw.list.length - 1));
+  await db.settings.put({ key: 'emisores', value: raw });
+  // sincronizar la clave legacy con la empresa activa
+  await db.settings.put({ key: 'emisor', value: raw.list[raw.active] || null });
+}
+
+export async function getEmisores() {
+  const raw = await getEmisoresRaw();
+  return { list: raw.list, active: raw.active };
+}
+
+export async function setEmisorActivo(idx) {
+  const raw = await getEmisoresRaw();
+  raw.active = idx;
+  await putEmisoresRaw(raw);
+  triggerAutoBackup();
+}
+
+export async function addEmisor(emisor) {
+  const raw = await getEmisoresRaw();
+  raw.list.push(emisor || { ...DEFAULT_EMISOR });
+  raw.active = raw.list.length - 1;
+  await putEmisoresRaw(raw);
+  triggerAutoBackup();
+  return raw.active;
+}
+
+export async function deleteEmisorActivo() {
+  const raw = await getEmisoresRaw();
+  if (raw.list.length <= 1) return false; // siempre queda al menos una
+  raw.list.splice(raw.active, 1);
+  raw.active = 0;
+  await putEmisoresRaw(raw);
+  triggerAutoBackup();
+  return true;
+}
+
 export async function getEmisorSettings() {
-  const s = await db.settings.get('emisor');
-  return s ? { ...DEFAULT_EMISOR, ...s.value } : { ...DEFAULT_EMISOR };
+  const raw = await getEmisoresRaw();
+  const activo = raw.list[raw.active];
+  return activo ? { ...DEFAULT_EMISOR, ...activo } : { ...DEFAULT_EMISOR };
 }
 
 export async function saveEmisorSettings(emisor) {
-  await db.settings.put({ key: 'emisor', value: emisor });
+  const raw = await getEmisoresRaw();
+  if (raw.list.length === 0) raw.list.push(emisor);
+  else raw.list[raw.active] = emisor;
+  await putEmisoresRaw(raw);
 }
 
 // True once the user has configured their company name (first-run onboarding done)

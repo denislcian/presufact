@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Calculator, Info } from 'lucide-react';
-import { getAllDocuments } from '../db';
+import { getAllDocuments, isPendienteCobro } from '../db';
 import { formatNumber, calcInvoiceTaxBreakdown } from '../utils/formatters';
 
 // Resumen fiscal por trimestres (borrador orientativo para los modelos 303 / 130).
@@ -44,7 +44,7 @@ export default function TaxSummary() {
     row.irpf += tax.irpfAmount;
     row.total += tax.total;
     if ((inv.estado || 'pendiente') === 'cobrada') row.cobrado += tax.total;
-    else row.pendiente += tax.total;
+    else if (isPendienteCobro(inv)) row.pendiente += tax.total;
   }
 
   const yearRow = quarters.reduce((acc, r) => ({

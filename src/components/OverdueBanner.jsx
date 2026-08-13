@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AlertTriangle, X } from 'lucide-react';
-import { getAllDocuments } from '../db';
+import { getAllDocuments, isPendienteCobro } from '../db';
 import { formatNumber, calcInvoiceTaxBreakdown } from '../utils/formatters';
 
 // Aviso al abrir la app: facturas pendientes con el primer vencimiento pasado.
@@ -16,7 +16,7 @@ export default function OverdueBanner() {
     getAllDocuments('factura').then(all => {
       const hoy = new Date().toISOString().split('T')[0];
       const vencidas = all.filter(inv =>
-        (inv.estado || 'pendiente') === 'pendiente' &&
+        isPendienteCobro(inv) && (inv.estado || 'pendiente') !== 'rechazada' &&
         inv.vencimientos?.[0]?.fecha && inv.vencimientos[0].fecha < hoy
       );
       if (vencidas.length === 0) return;
