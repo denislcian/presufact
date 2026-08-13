@@ -84,24 +84,24 @@ function AppLayout() {
 
   const brand = (
     <button onClick={() => { navigate('/app'); setMobileOpen(false); }}
-      className={`flex items-center gap-2 hover:opacity-80 transition w-full min-w-0 overflow-hidden ${collapsed ? 'justify-center' : 'text-left'}`}
+      className={`flex hover:opacity-80 transition w-full min-w-0 overflow-hidden ${
+        collapsed ? 'items-center justify-center' : 'flex-col items-center gap-2 text-center'
+      }`}
       title={companyName}>
       {emisor?.logo ? (
-        <img src={emisor.logo} alt="Logo" className={`object-contain flex-shrink-0 ${collapsed ? 'h-8 w-8' : 'h-8 max-w-[150px]'}`} />
+        <img src={emisor.logo} alt="Logo" className={`object-contain flex-shrink-0 ${collapsed ? 'h-8 w-8' : 'h-12 max-w-[180px]'}`} />
       ) : (
-        <>
-          <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
-            <FileText className="w-5 h-5 text-white" />
-          </div>
-          {!collapsed && (
-            <span className={`font-bold text-gray-800 block min-w-0 leading-tight break-words ${
-              companyName.length <= 12 ? 'text-base' : companyName.length <= 22 ? 'text-[13px]' : 'text-xs'
-            }`}
-              style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {companyName}
-            </span>
-          )}
-        </>
+        <div className={`bg-accent rounded-lg flex items-center justify-center flex-shrink-0 ${collapsed ? 'w-8 h-8' : 'w-11 h-11'}`}>
+          <FileText className={`text-white ${collapsed ? 'w-5 h-5' : 'w-6 h-6'}`} />
+        </div>
+      )}
+      {!collapsed && (
+        <span className={`font-bold text-gray-800 block min-w-0 leading-tight break-words w-full ${
+          companyName.length <= 12 ? 'text-base' : companyName.length <= 22 ? 'text-[13px]' : 'text-xs'
+        }`}
+          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {companyName}
+        </span>
       )}
     </button>
   );
