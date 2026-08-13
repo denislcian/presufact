@@ -110,6 +110,19 @@ export default function Onboarding({ onDone }) {
                 className="mt-6 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-light text-white rounded-lg font-medium transition disabled:opacity-40">
                 Continuar <ArrowRight size={16} />
               </button>
+
+              <button onClick={async () => {
+                setSaving(true);
+                const { seedDemoData } = await import('../utils/demoData');
+                await seedDemoData();
+                onDone();
+              }} disabled={saving}
+                className="mt-3 w-full px-4 py-2.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-sm font-medium transition disabled:opacity-50">
+                {saving ? 'Preparando la demo...' : '✨ O explora primero con datos de ejemplo'}
+              </button>
+              <p className="text-xs text-gray-400 text-center mt-1.5">
+                Verás la app llena de facturas y presupuestos ficticios. Podrás borrarlo todo con un clic.
+              </p>
             </>
           )}
 

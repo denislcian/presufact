@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Copy, Edit3, FileText, Download, Calendar, Euro, Upload, ArrowRightCircle, FileSpreadsheet, Clock, Share2, Mail, Undo2 } from 'lucide-react';
+import { Plus, Search, Trash2, Copy, Edit3, FileText, Download, Calendar, Euro, Upload, ArrowRightCircle, FileSpreadsheet, Clock, Share2, Mail, Undo2, FileCode2 } from 'lucide-react';
 import ImportInvoice from './ImportInvoice';
 import { getAllDocuments, deleteDocument, duplicateDocument, DOC_TYPES, getNextNumber, saveDocument, ESTADOS, cycleEstado, updateDocumentFields, isPendienteCobro } from '../db';
 import { formatNumber, formatDateES, calcInvoiceTaxBreakdown } from '../utils/formatters';
@@ -433,6 +433,18 @@ export default function InvoiceList({ docType = 'factura' }) {
                           <button onClick={() => handleRectificativa(inv)}
                             className="p-2 hover:bg-orange-50 rounded-lg transition cursor-pointer" title="Crear rectificativa (abono)">
                             <Undo2 size={16} className="text-gray-400 hover:text-orange-500" />
+                          </button>
+                        )}
+                        {docType === 'factura' && (
+                          <button onClick={async () => {
+                            try {
+                              const { downloadFacturae } = await import('../utils/facturae');
+                              downloadFacturae(inv);
+                              toast('Facturae XML descargado — fírmalo con AutoFirma antes de presentarlo en FACe', 'info');
+                            } catch (e) { toast('No se pudo generar el Facturae: ' + e.message, 'error'); }
+                          }}
+                            className="p-2 hover:bg-indigo-50 rounded-lg transition cursor-pointer" title="Facturae XML (para FACe / administraciones públicas)">
+                            <FileCode2 size={16} className="text-gray-400 hover:text-indigo-600" />
                           </button>
                         )}
                         <button onClick={() => setConfirmDelete(inv.id)}

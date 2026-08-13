@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation, Lin
 import { FileText, Receipt, ClipboardList, Settings, Home, Calculator, Users } from 'lucide-react';
 import ClientManager from './components/ClientManager';
 import Toaster from './components/Toaster';
+import DemoBanner from './components/DemoBanner';
 import LandingPage from './pages/LandingPage';
 import VerifactuPage from './pages/VerifactuPage';
 import SeoLanding from './pages/SeoLanding';
@@ -52,6 +53,7 @@ function AppLayout() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <DemoBanner />
       <RecoveryBanner />
       <OverdueBanner />
       <BackupNudge />
