@@ -6,6 +6,7 @@ import Toaster from './components/Toaster';
 import LandingPage from './pages/LandingPage';
 import VerifactuPage from './pages/VerifactuPage';
 import SeoLanding from './pages/SeoLanding';
+import ComparativaPage from './pages/ComparativaPage';
 import HomePage from './components/HomePage';
 import InvoiceList from './components/InvoiceList';
 import InvoiceForm from './components/InvoiceForm';
@@ -133,6 +134,7 @@ export default function App() {
       <Route path="/presupuesto-fontaneria" element={<SeoLanding variant="fontaneria" />} />
       <Route path="/presupuesto-electricista" element={<SeoLanding variant="electricista" />} />
       <Route path="/presupuesto-pintura" element={<SeoLanding variant="pintura" />} />
+      <Route path="/comparativa" element={<ComparativaPage />} />
 
       {/* Application area (onboarding-gated) */}
       <Route element={<AppLayout />}>

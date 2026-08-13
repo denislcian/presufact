@@ -184,7 +184,11 @@ export default function LandingPage() {
           </div>
           <h2 className="text-3xl font-extrabold">Tus datos son solo tuyos</h2>
           <p className="mt-4 text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            A diferencia de otras herramientas, Presufact <strong className="text-white">no guarda nada en la nube</strong>. Tus facturas, clientes y cuentas se quedan en tu dispositivo. Nosotros no los vemos, no los vendemos y no los perdemos.
+            A diferencia de otras herramientas, Presufact <strong className="text-white">no guarda nada en la nube</strong>. Tus facturas, clientes y cuentas se quedan en tu dispositivo. Nosotros no los vemos, no los vendemos y no los perdemos —
+            <strong className="text-white"> no pueden filtrarse de un servidor que no existe</strong>.
+          </p>
+          <p className="mt-3 text-sm text-emerald-300">
+            Compruébalo tú mismo: activa el modo avión y sigue facturando. Todo funciona.
           </p>
           <div className="grid sm:grid-cols-3 gap-4 mt-8 text-left">
             {[
@@ -242,7 +246,8 @@ export default function LandingPage() {
           <p className="text-xs text-gray-400 text-center mt-3">
             Datos de los planes gratuitos publicados por cada servicio (agosto 2026). Presufact puede ser ilimitado
             porque no tiene servidores que mantener: la app entera funciona en tu dispositivo — por eso también
-            funciona en modo avión y nadie (ni nosotros) puede ver tus datos.
+            funciona en modo avión y nadie (ni nosotros) puede ver tus datos.{' '}
+            <Link to="/comparativa" className="text-accent underline hover:no-underline">Ver la comparativa completa (incluye Billin)</Link>
           </p>
         </div>
       </section>
@@ -290,9 +295,10 @@ export default function LandingPage() {
             </div>
             <span className="font-bold">Presufact</span>
           </div>
-          <div className="flex items-center justify-center gap-4 text-xs mb-3">
+          <div className="flex items-center justify-center gap-4 text-xs mb-3 flex-wrap">
             <Link to="/generador-de-facturas" className="text-gray-500 hover:text-accent transition">Generador de facturas</Link>
             <Link to="/generador-de-presupuestos" className="text-gray-500 hover:text-accent transition">Generador de presupuestos</Link>
+            <Link to="/comparativa" className="text-gray-500 hover:text-accent transition">Comparativa de precios</Link>
             <Link to="/verifactu" className="text-gray-500 hover:text-accent transition">Guía Verifactu</Link>
           </div>
           <p className="text-xs text-gray-400 max-w-2xl mx-auto">
