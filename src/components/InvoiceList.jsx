@@ -258,7 +258,7 @@ export default function InvoiceList({ docType = 'factura' }) {
     : statsBase.filter(inv => (inv.estado || 'pendiente') === 'pendiente').reduce((sum, inv) => sum + docTotal(inv), 0);
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-[1600px] mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -385,15 +385,15 @@ export default function InvoiceList({ docType = 'factura' }) {
                 return (
                   <tr key={inv.id} className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
                     onClick={() => navigate(`${config.route}/editar/${inv.id}`)}>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className="font-mono font-semibold text-accent">#{inv.invoiceNumber}</span>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{formatDateES(inv.date)}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDateES(inv.date)}</td>
                     <td className="px-4 py-3">
                       <div className="font-medium text-gray-800">{inv.cliente?.nombre || inv.clientName || '-'}</div>
                       <div className="text-xs text-gray-400">{inv.cliente?.nif}</div>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-semibold">{formatNumber(total)} &euro;</td>
+                    <td className="px-4 py-3 text-right font-mono font-semibold whitespace-nowrap">{formatNumber(total)} &euro;</td>
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <button onClick={() => handleCycleEstado(inv.id)}
                         className={`px-2.5 py-1 text-xs rounded-full font-medium transition hover:ring-2 hover:ring-offset-1 hover:ring-gray-300 ${estado.classes}`}

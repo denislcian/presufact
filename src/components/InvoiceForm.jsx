@@ -225,7 +225,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

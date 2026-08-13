@@ -17,7 +17,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto mt-8">
+    <div className="max-w-5xl mx-auto mt-8">
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">{companyName || 'Presufact'}</h1>
