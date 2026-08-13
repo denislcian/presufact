@@ -338,69 +338,22 @@ export const duplicateInvoice = (id) => duplicateDocument('factura', id);
 
 // ============ SETTINGS ============
 
-// ============ MULTI-EMPRESA ============
-// Varias empresas emisoras gratis e ilimitadas (los SaaS cobran por cada una).
-// Estructura: settings['emisores'] = { list: [...], active: idx }.
-// La clave legacy 'emisor' se mantiene sincronizada con la activa para
-// compatibilidad (logo, backups antiguos, onboarding).
-
-async function getEmisoresRaw() {
-  const s = await db.settings.get('emisores');
-  if (s?.value?.list?.length) return s.value;
-  // migracion transparente desde el emisor unico
-  const old = await db.settings.get('emisor');
-  return { list: old?.value ? [old.value] : [], active: 0 };
-}
-
-async function putEmisoresRaw(raw) {
-  raw.active = Math.max(0, Math.min(raw.active, raw.list.length - 1));
-  await db.settings.put({ key: 'emisores', value: raw });
-  // sincronizar la clave legacy con la empresa activa
-  await db.settings.put({ key: 'emisor', value: raw.list[raw.active] || null });
-}
-
-export async function getEmisores() {
-  const raw = await getEmisoresRaw();
-  return { list: raw.list, active: raw.active };
-}
-
-export async function setEmisorActivo(idx) {
-  const raw = await getEmisoresRaw();
-  raw.active = idx;
-  await putEmisoresRaw(raw);
-  triggerAutoBackup();
-}
-
-export async function addEmisor(emisor) {
-  const raw = await getEmisoresRaw();
-  raw.list.push(emisor || { ...DEFAULT_EMISOR });
-  raw.active = raw.list.length - 1;
-  await putEmisoresRaw(raw);
-  triggerAutoBackup();
-  return raw.active;
-}
-
-export async function deleteEmisorActivo() {
-  const raw = await getEmisoresRaw();
-  if (raw.list.length <= 1) return false; // siempre queda al menos una
-  raw.list.splice(raw.active, 1);
-  raw.active = 0;
-  await putEmisoresRaw(raw);
-  triggerAutoBackup();
-  return true;
-}
-
+// Una sola empresa por instalacion (decision de producto: individualizar).
 export async function getEmisorSettings() {
-  const raw = await getEmisoresRaw();
-  const activo = raw.list[raw.active];
-  return activo ? { ...DEFAULT_EMISOR, ...activo } : { ...DEFAULT_EMISOR };
+  const s = await db.settings.get('emisor');
+  if (s?.value) return { ...DEFAULT_EMISOR, ...s.value };
+  // migracion de vuelta desde el multi-empresa retirado: tomar la activa
+  const multi = await db.settings.get('emisores');
+  const activo = multi?.value?.list?.[multi.value.active || 0];
+  if (activo) {
+    await db.settings.put({ key: 'emisor', value: activo });
+    return { ...DEFAULT_EMISOR, ...activo };
+  }
+  return { ...DEFAULT_EMISOR };
 }
 
 export async function saveEmisorSettings(emisor) {
-  const raw = await getEmisoresRaw();
-  if (raw.list.length === 0) raw.list.push(emisor);
-  else raw.list[raw.active] = emisor;
-  await putEmisoresRaw(raw);
+  await db.settings.put({ key: 'emisor', value: emisor });
 }
 
 // True once the user has configured their company name (first-run onboarding done)

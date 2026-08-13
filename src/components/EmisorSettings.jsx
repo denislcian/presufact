@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save, RotateCcw, Download, Upload, Shield, Clock, FolderOpen, History, HardDrive } from 'lucide-react';
-import { getEmisorSettings, saveEmisorSettings, DEFAULT_EMISOR, getEmisores, setEmisorActivo, addEmisor, deleteEmisorActivo } from '../db';
+import { getEmisorSettings, saveEmisorSettings, DEFAULT_EMISOR } from '../db';
 import { invalidateLogoCache } from '../utils/logoSvg';
 import { downloadBackup, importBackup, getLastBackupDate, hasLocalBackup, restoreFromLocalBackup, pickBackupFolder, getBackupFolderName, clearBackupFolder, listRecoverySources, autoBackup, shareBackup } from '../utils/backup';
 
@@ -14,35 +14,11 @@ export default function EmisorSettings() {
   const [recoverySources, setRecoverySources] = useState([]);
   const fileRef = useRef(null);
 
-  const [empresas, setEmpresas] = useState({ list: [], active: 0 });
-
-  const reloadEmisor = async () => {
-    setEmisor(await getEmisorSettings());
-    setEmpresas(await getEmisores());
-    invalidateLogoCache();
-  };
-
   useEffect(() => {
-    reloadEmisor();
+    getEmisorSettings().then(setEmisor);
     getBackupFolderName().then(setBackupFolder).catch(() => {});
     setRecoverySources(listRecoverySources());
   }, []);
-
-  const handleSwitchEmpresa = async (idx) => {
-    await setEmisorActivo(idx);
-    await reloadEmisor();
-  };
-
-  const handleAddEmpresa = async () => {
-    await addEmisor();
-    await reloadEmisor();
-  };
-
-  const handleDeleteEmpresa = async () => {
-    if (!window.confirm(`¿Eliminar la empresa "${emisor?.nombre || 'sin nombre'}" de la lista? Sus documentos ya emitidos no se tocan.`)) return;
-    const ok = await deleteEmisorActivo();
-    if (ok) await reloadEmisor();
-  };
 
   if (!emisor) return null;
 
@@ -146,34 +122,10 @@ export default function EmisorSettings() {
         </div>
       </div>
 
-      {/* Multi-empresa: selector, alta y baja (ilimitadas, gratis) */}
-      {(empresas.list.length > 1 || true) && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4 flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Empresa activa</span>
-          <select className="flex-1 min-w-[180px] px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent outline-none"
-            value={empresas.active}
-            onChange={e => handleSwitchEmpresa(parseInt(e.target.value))}>
-            {empresas.list.map((em, i) => (
-              <option key={i} value={i}>{em?.nombre?.trim() || `Empresa ${i + 1} (sin nombre)`}</option>
-            ))}
-          </select>
-          <button onClick={handleAddEmpresa}
-            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition">
-            + Añadir empresa
-          </button>
-          {empresas.list.length > 1 && (
-            <button onClick={handleDeleteEmpresa}
-              className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm transition">
-              Eliminar esta
-            </button>
-          )}
-        </div>
-      )}
-
       {/* Datos del emisor */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4 mb-6">
         <h2 className="text-lg font-semibold text-gray-700 border-b pb-2">Datos del Emisor</h2>
-        <p className="text-sm text-gray-500">Estos datos se usaran por defecto al crear nuevas facturas. Puedes tener tantas empresas como quieras — sin coste.</p>
+        <p className="text-sm text-gray-500">Estos datos se usaran por defecto al crear nuevas facturas.</p>
 
         {/* Logo */}
         <div className="flex items-center gap-4 pb-2">

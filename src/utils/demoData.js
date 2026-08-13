@@ -126,7 +126,6 @@ export async function seedDemoData() {
     iva: { tipo: 21 } });
 
   // ---- EMISOR + FLAG DEMO ----
-  await db.settings.put({ key: 'emisores', value: { list: [EMISOR_DEMO], active: 0 } });
   await db.settings.put({ key: 'emisor', value: EMISOR_DEMO });
   await db.settings.put({ key: 'demoMode', value: true });
 }
