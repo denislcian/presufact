@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Search, Edit3, Trash2, Users, X, Save, FileText, Receipt } from 'lucide-react';
-import { getClientes, saveCliente, deleteCliente, seedClientesFromDocs, getAllDocuments } from '../db';
+import { ArrowLeft, Plus, Search, Edit3, Trash2, Users, X, Save, FileText, Receipt, Upload } from 'lucide-react';
+import { useRef } from 'react';
+import { getClientes, saveCliente, deleteCliente, seedClientesFromDocs, getAllDocuments, upsertClienteFromDoc } from '../db';
 import { formatNumber, formatDateES, calcInvoiceTaxBreakdown } from '../utils/formatters';
+import { parseClientesCSV } from '../utils/csvClientes';
 import { toast } from './Toaster';
 
 const EMPTY = { nombre: '', nif: '', direccion: '', cp: '', ciudad: '', provincia: '', email: '', telefono: '' };
@@ -23,6 +25,34 @@ export default function ClientManager() {
   const [detail, setDetail] = useState(null); // cliente en ficha de detalle
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [importPreview, setImportPreview] = useState(null); // { clientes, columnasDetectadas }
+  const csvRef = useRef(null);
+
+  // Migracion-refugio: CSV exportado de Billin, Contasimple, Holded, Excel...
+  const handleCSVFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const result = parseClientesCSV(text);
+      if (result.total === 0) { toast('No se han reconocido clientes en ese CSV', 'error'); return; }
+      setImportPreview(result);
+    } catch (err) {
+      toast('No se pudo leer el archivo: ' + err.message, 'error');
+    }
+  };
+
+  const confirmImport = async () => {
+    let n = 0;
+    for (const c of importPreview.clientes) {
+      await upsertClienteFromDoc(c); // dedup por nombre, solo completa vacios
+      n++;
+    }
+    setImportPreview(null);
+    toast(`${n} cliente(s) importados a la libreta`);
+    load();
+  };
 
   const load = async () => {
     let list = await getClientes();
@@ -109,10 +139,18 @@ export default function ClientManager() {
             <p className="text-sm text-gray-500">Tu libreta con la actividad de cada cliente — clic en una fila para ver su ficha</p>
           </div>
         </div>
-        <button onClick={() => setEditing({ ...EMPTY })}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-light text-white rounded-lg transition font-medium text-sm">
-          <Plus size={16} /> Nuevo cliente
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => csvRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium text-sm"
+            title="Importa el CSV de clientes exportado de Billin, Contasimple, Holded o Excel">
+            <Upload size={16} /> Importar CSV
+          </button>
+          <input ref={csvRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleCSVFile} />
+          <button onClick={() => setEditing({ ...EMPTY })}
+            className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-light text-white rounded-lg transition font-medium text-sm">
+            <Plus size={16} /> Nuevo cliente
+          </button>
+        </div>
       </div>
 
       <div className="relative mb-4">
@@ -302,6 +340,36 @@ export default function ClientManager() {
               <button onClick={() => setEditing(null)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">Cancelar</button>
               <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-medium transition">
                 <Save size={14} /> Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vista previa de importacion CSV */}
+      {importPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setImportPreview(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-gray-800 mb-1">Importar {importPreview.total} cliente(s)</h2>
+            <p className="text-sm text-gray-500 mb-3">
+              Columnas reconocidas: <span className="font-mono text-xs">{importPreview.columnasDetectadas.join(', ')}</span>.
+              Los que ya existan por nombre solo completarán sus campos vacíos.
+            </p>
+            <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-64 overflow-y-auto mb-4">
+              {importPreview.clientes.slice(0, 50).map((c, i) => (
+                <div key={i} className="px-3 py-2 text-sm">
+                  <span className="font-medium text-gray-800">{c.nombre}</span>
+                  <span className="text-xs text-gray-400 ml-2">{[c.nif, c.email, c.ciudad].filter(Boolean).join(' · ')}</span>
+                </div>
+              ))}
+              {importPreview.total > 50 && (
+                <div className="px-3 py-2 text-xs text-gray-400">... y {importPreview.total - 50} más</div>
+              )}
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setImportPreview(null)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">Cancelar</button>
+              <button onClick={confirmImport} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-medium transition">
+                Importar {importPreview.total} cliente(s)
               </button>
             </div>
           </div>
