@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Eraser, Check } from 'lucide-react';
+import { Eraser, Check, ImagePlus } from 'lucide-react';
 
 // Pad de firma con canvas: funciona con dedo (movil), stylus y raton.
 // onChange recibe el dataURL PNG de la firma (o null al borrar).
@@ -74,6 +74,34 @@ export default function SignaturePad({ value, onChange, label = 'Firma' }) {
     onChange(null);
   };
 
+  // Firma desde imagen (PNG/JPG): se dibuja escalada y centrada en el recuadro
+  // y se guarda como PNG — llega al PDF igual que una firma a mano.
+  const fileRef = useRef(null);
+  const handleImageFile = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { alert('La imagen es muy grande (máx. 2 MB).'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(rect.width / img.width, rect.height / img.height) * 0.9;
+        const w = img.width * scale, h = img.height * scale;
+        ctx.drawImage(img, (rect.width - w) / 2, (rect.height - h) / 2, w, h);
+        hasInk.current = true;
+        setSigned(true);
+        onChange(canvas.toDataURL('image/png'));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
@@ -81,15 +109,25 @@ export default function SignaturePad({ value, onChange, label = 'Firma' }) {
           {label}
           {signed && <Check size={13} className="text-emerald-500" />}
         </span>
-        <button type="button" onClick={clear}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition">
-          <Eraser size={12} /> Borrar
-        </button>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={() => fileRef.current?.click()}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-accent transition" title="Subir una imagen de la firma (PNG o JPG)">
+            <ImagePlus size={12} /> Subir imagen
+          </button>
+          <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleImageFile} />
+          <button type="button" onClick={clear}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition">
+            <Eraser size={12} /> Borrar
+          </button>
+        </div>
       </div>
       <canvas ref={canvasRef}
         className="w-full h-32 border-2 border-dashed border-gray-300 rounded-xl bg-white cursor-crosshair touch-none"
         onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerLeave={end} />
-      <p className="text-xs text-gray-400 mt-1">Firma con el dedo (móvil) o el ratón. Se incluirá en el PDF sobre la línea de conformidad.</p>
+      <p className="text-xs text-gray-400 mt-1">
+        Firma con el dedo (móvil) o el ratón, o sube una imagen de tu firma. Se incluirá en el PDF sobre la línea de conformidad.
+        ¿Necesitas firma digital con certificado? Descarga el PDF y fírmalo con <a href="https://firmaelectronica.gob.es/Home/Descargas.html" target="_blank" rel="noopener" className="underline hover:text-accent">AutoFirma</a> (oficial y gratuita).
+      </p>
     </div>
   );
 }

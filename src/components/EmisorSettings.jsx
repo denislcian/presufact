@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, RotateCcw, Download, Upload, Shield, Clock, FolderOpen, History, HardDrive } from 'lucide-react';
+import { Save, RotateCcw, Download, Upload, Shield, Clock, FolderOpen, History, HardDrive } from 'lucide-react';
 import { getEmisorSettings, saveEmisorSettings, DEFAULT_EMISOR, getEmisores, setEmisorActivo, addEmisor, deleteEmisorActivo } from '../db';
 import { invalidateLogoCache } from '../utils/logoSvg';
 import { downloadBackup, importBackup, getLastBackupDate, hasLocalBackup, restoreFromLocalBackup, pickBackupFolder, getBackupFolderName, clearBackupFolder, listRecoverySources, autoBackup, shareBackup } from '../utils/backup';
@@ -135,10 +135,7 @@ export default function EmisorSettings() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/app')} className="p-2 hover:bg-gray-200 rounded-lg transition"><ArrowLeft size={20} /></button>
-          <h1 className="text-2xl font-bold text-gray-800">Ajustes</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Ajustes</h1>
         <div className="flex items-center gap-2">
           <button onClick={handleReset} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-sm">
             <RotateCcw size={14} /> Restaurar

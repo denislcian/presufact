@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Calculator, Info } from 'lucide-react';
+import { Download, Calculator, Info } from 'lucide-react';
 import { getAllDocuments, isPendienteCobro } from '../db';
 import { formatNumber, calcInvoiceTaxBreakdown } from '../utils/formatters';
 
@@ -82,12 +82,9 @@ export default function TaxSummary() {
   return (
     <div className="max-w-[1400px] mx-auto">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/app')} className="p-2 hover:bg-gray-200 rounded-lg transition"><ArrowLeft size={20} /></button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Calculator size={22} className="text-accent" /> Resumen fiscal</h1>
-            <p className="text-sm text-gray-500">Borrador orientativo por trimestres para tus modelos 303 (IVA) y 130 (IRPF)</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Calculator size={22} className="text-accent" /> Resumen fiscal</h1>
+          <p className="text-sm text-gray-500">Borrador orientativo por trimestres para tus modelos 303 (IVA) y 130 (IRPF)</p>
         </div>
         <div className="flex items-center gap-2">
           <select value={year} onChange={e => setYear(e.target.value)}

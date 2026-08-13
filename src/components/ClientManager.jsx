@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Search, Edit3, Trash2, Users, X, Save, FileText, Receipt, Upload } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, Users, X, Save, FileText, Receipt, Upload } from 'lucide-react';
 import { useRef } from 'react';
 import { getClientes, saveCliente, deleteCliente, seedClientesFromDocs, getAllDocuments, upsertClienteFromDoc, isPendienteCobro } from '../db';
 import { formatNumber, formatDateES, calcInvoiceTaxBreakdown } from '../utils/formatters';
@@ -132,12 +132,9 @@ export default function ClientManager() {
   return (
     <div className="max-w-[1600px] mx-auto">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/app')} className="p-2 hover:bg-gray-200 rounded-lg transition"><ArrowLeft size={20} /></button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Users size={22} className="text-accent" /> Clientes</h1>
-            <p className="text-sm text-gray-500">Tu libreta con la actividad de cada cliente — clic en una fila para ver su ficha</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Users size={22} className="text-accent" /> Clientes</h1>
+          <p className="text-sm text-gray-500">Tu libreta con la actividad de cada cliente — clic en una fila para ver su ficha</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => csvRef.current?.click()}
