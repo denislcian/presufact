@@ -72,6 +72,7 @@ export default function LandingPage() {
           <span className="flex items-center gap-1.5"><Check size={15} className="text-emerald-500" /> Sin tarjeta</span>
           <span className="flex items-center gap-1.5"><Check size={15} className="text-emerald-500" /> Sin email</span>
           <span className="flex items-center gap-1.5"><Check size={15} className="text-emerald-500" /> Sin instalar nada (opcional)</span>
+          <span className="flex items-center gap-1.5"><Check size={15} className="text-emerald-500" /> Funciona sin internet</span>
         </div>
 
         {/* Document mockup */}
@@ -198,6 +199,51 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* COMPARATIVA: gratis sin trampa */}
+      <section className="py-16 bg-gray-50 border-y border-gray-100">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-3xl font-extrabold text-center">"Gratis" sin letra pequeña</h2>
+          <p className="text-center text-gray-500 mt-2">Los límites reales de los planes gratuitos, comparados.</p>
+          <div className="mt-8 overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200">
+                  <th className="px-4 py-3 text-left"></th>
+                  <th className="px-4 py-3 text-center text-accent">Presufact</th>
+                  <th className="px-4 py-3 text-center">Contasimple</th>
+                  <th className="px-4 py-3 text-center">FacturaDirecta</th>
+                  <th className="px-4 py-3 text-center">App AEAT</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {[
+                  ['Facturas al mes', 'Ilimitadas', '~12 al año', '3 al mes', 'Sin límite'],
+                  ['Clientes guardados', 'Ilimitados', 'Limitados', '10', 'No tiene libreta'],
+                  ['Tu logo y color en el PDF', 'Sí', 'De pago', 'Limitado', 'No'],
+                  ['Presupuestos y proformas', 'Sí', 'De pago', 'Sí', 'No'],
+                  ['Exportar tus datos', 'Siempre, en tus archivos', 'Con cuenta', 'Con cuenta', 'No se pueden sacar'],
+                  ['Registro / email', 'No hace falta', 'Obligatorio', 'Obligatorio', 'Cl@ve / certificado'],
+                  ['Funciona sin internet', 'Sí, al 100%', 'No', 'No', 'No'],
+                ].map((r, i) => (
+                  <tr key={i}>
+                    <td className="px-4 py-3 font-medium text-gray-700">{r[0]}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-accent">{r[1]}</td>
+                    <td className="px-4 py-3 text-center text-gray-500">{r[2]}</td>
+                    <td className="px-4 py-3 text-center text-gray-500">{r[3]}</td>
+                    <td className="px-4 py-3 text-center text-gray-500">{r[4]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-gray-400 text-center mt-3">
+            Datos de los planes gratuitos publicados por cada servicio (agosto 2026). Presufact puede ser ilimitado
+            porque no tiene servidores que mantener: la app entera funciona en tu dispositivo — por eso también
+            funciona en modo avión y nadie (ni nosotros) puede ver tus datos.
+          </p>
         </div>
       </section>
 
