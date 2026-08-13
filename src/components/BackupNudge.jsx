@@ -37,7 +37,7 @@ export default function BackupNudge() {
 
   return (
     <div className="bg-amber-50 border-b border-amber-200">
-      <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-3 text-sm">
+      <div className="px-4 py-2.5 flex items-center gap-3 text-sm">
         <HardDrive size={16} className="text-amber-600 flex-shrink-0" />
         <p className="text-amber-800 flex-1">
           Tus documentos solo están en este navegador. <strong>Configura una carpeta de backup</strong> para que

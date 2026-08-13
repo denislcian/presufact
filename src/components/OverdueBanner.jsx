@@ -35,7 +35,7 @@ export default function OverdueBanner() {
 
   return (
     <div className="bg-red-50 border-b border-red-200">
-      <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-3 text-sm">
+      <div className="px-4 py-2.5 flex items-center gap-3 text-sm">
         <AlertTriangle size={16} className="text-red-500 flex-shrink-0" />
         <p className="text-red-800 flex-1">
           Tienes <strong>{info.count} factura{info.count > 1 ? 's' : ''} vencida{info.count > 1 ? 's' : ''}</strong> por

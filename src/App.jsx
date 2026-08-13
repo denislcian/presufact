@@ -84,15 +84,16 @@ function AppLayout() {
 
   const brand = (
     <button onClick={() => { navigate('/app'); setMobileOpen(false); }}
-      className={`flex items-center gap-2 hover:opacity-80 transition min-w-0 ${collapsed ? 'justify-center' : ''}`}>
+      className={`flex items-center gap-2 hover:opacity-80 transition w-full min-w-0 overflow-hidden ${collapsed ? 'justify-center' : 'text-left'}`}
+      title={companyName}>
       {emisor?.logo ? (
-        <img src={emisor.logo} alt="Logo" className={`object-contain ${collapsed ? 'h-8 w-8' : 'h-8 max-w-[150px]'}`} />
+        <img src={emisor.logo} alt="Logo" className={`object-contain flex-shrink-0 ${collapsed ? 'h-8 w-8' : 'h-8 max-w-[150px]'}`} />
       ) : (
         <>
           <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
             <FileText className="w-5 h-5 text-white" />
           </div>
-          {!collapsed && <span className="text-base font-bold text-gray-800 truncate">{companyName}</span>}
+          {!collapsed && <span className="text-base font-bold text-gray-800 truncate block min-w-0">{companyName}</span>}
         </>
       )}
     </button>

@@ -46,7 +46,7 @@ export default function RecoveryBanner() {
 
   return (
     <div className="bg-amber-50 border-b-2 border-amber-300">
-      <div className="max-w-6xl mx-auto px-4 py-3">
+      <div className="px-4 py-3">
         {done ? (
           <div className="flex items-center gap-2 text-green-700 text-sm font-medium">
             <CheckCircle size={18} /> {done}
