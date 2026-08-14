@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Sin fuentes externas: cero peticiones a terceros (coherente con la CSP y
+   la politica de privacidad). La pila del body cae a Segoe UI / system-ui. */
 @import "tailwindcss";
 
 @theme {
