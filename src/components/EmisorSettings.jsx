@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Save, RotateCcw, Download, Upload, Shield, Clock, FolderOpen, History, HardDrive } from 'lucide-react';
 import { getEmisorSettings, saveEmisorSettings, DEFAULT_EMISOR } from '../db';
 import { invalidateLogoCache } from '../utils/logoSvg';
 import { downloadBackup, importBackup, getLastBackupDate, hasLocalBackup, restoreFromLocalBackup, pickBackupFolder, getBackupFolderName, clearBackupFolder, listRecoverySources, autoBackup, shareBackup } from '../utils/backup';
 
 export default function EmisorSettings() {
-  const navigate = useNavigate();
   const [emisor, setEmisor] = useState(null);
   const [saved, setSaved] = useState(false);
   const [backupMsg, setBackupMsg] = useState('');

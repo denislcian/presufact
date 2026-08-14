@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Download, Calculator, Info } from 'lucide-react';
 import { getAllDocuments, isPendienteCobro } from '../db';
 import { formatNumber, calcInvoiceTaxBreakdown } from '../utils/formatters';
@@ -7,7 +6,6 @@ import { formatNumber, calcInvoiceTaxBreakdown } from '../utils/formatters';
 // Resumen fiscal por trimestres (borrador orientativo para los modelos 303 / 130).
 // Criterio de devengo: se agrupa por fecha de emision de la factura.
 export default function TaxSummary() {
-  const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [loading, setLoading] = useState(true);

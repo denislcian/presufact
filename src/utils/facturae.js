@@ -58,7 +58,7 @@ export function generateFacturaeXML(invoice) {
   const numero = String(invoice.invoiceNumber || 'SN');
   const fecha = invoice.date || new Date().toISOString().split('T')[0];
 
-  const taxesOutputs = tax.porTipo.filter(g => !tax.isISP).map(g => `
+  const taxesOutputs = tax.porTipo.filter(() => !tax.isISP).map(g => `
         <Tax>
           <TaxTypeCode>01</TaxTypeCode>
           <TaxRate>${n2(g.tipo)}</TaxRate>

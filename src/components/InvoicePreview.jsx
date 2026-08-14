@@ -173,43 +173,6 @@ export default function InvoicePreview({ invoice }) {
         </tbody>
       </table>
 
-      {/* OLD Deducciones table - hidden */}
-      {false && invoice.deducciones && invoice.deducciones.length > 0 && (
-        <div style={{ marginBottom: '3mm' }}>
-          {invoice.deducciones.map((ded, dIdx) => {
-            const activeLineas = (ded.lineas || []).filter(l => l.incluir !== false);
-            if (activeLineas.length === 0) return null;
-            return (
-              <table key={dIdx} style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2mm', tableLayout: 'fixed' }}>
-                <thead>
-                  <tr>
-                    <th colSpan="5" style={{ ...thStyle, backgroundColor: '#c2410c', textAlign: 'left' }}>
-                      {ded.manual
-                        ? `A DEDUCIR${ded.facturaNum ? ' - ' + ded.facturaNum : ''}`
-                        : `A DEDUCIR - FACTURA #${ded.facturaNum} (${ded.facturaFecha ? formatDateES(ded.facturaFecha) : ''})`}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeLineas.map((linea, lIdx) => {
-                    const sub = (parseFloat(linea.cantidad) || 0) * (parseFloat(linea.precioUd) || 0);
-                    return (
-                      <tr key={lIdx} style={{ backgroundColor: '#fff7ed' }}>
-                        <td style={{ ...tdStyle, color: '#9a3412', width: '40%', wordBreak: 'break-word' }}>{linea.descripcion}</td>
-                        <td style={{ ...tdStyle, color: '#9a3412', width: '10%', textAlign: 'center', fontSize: '8px' }}>{getUnitLabel(linea.unidad)}</td>
-                        <td style={{ ...tdStyle, color: '#9a3412', width: '15%', textAlign: 'right', fontFamily: "'Courier New', monospace" }}>{formatNumber(parseFloat(linea.cantidad) || 0)}</td>
-                        <td style={{ ...tdStyle, color: '#9a3412', width: '15%', textAlign: 'right', fontFamily: "'Courier New', monospace" }}>{formatNumber(parseFloat(linea.precioUd) || 0)}</td>
-                        <td style={{ ...tdStyle, color: '#9a3412', width: '20%', textAlign: 'right', fontFamily: "'Courier New', monospace", fontWeight: '600' }}>-{formatNumber(sub)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            );
-          })}
-        </div>
-      )}
-
       {/* Tax summary + Observations + Total */}
       <div style={{ display: 'flex', gap: '4mm', marginBottom: '4mm' }}>
         {/* Observations */}

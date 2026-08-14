@@ -21,6 +21,7 @@ const CONTENT = {
       { q: '¿De verdad es gratis sin límite de facturas?', a: 'Sí. Presufact no tiene planes de pago, ni límite mensual, ni funciones bloqueadas. Otros generadores "gratis" limitan a 3-5 facturas al mes; aquí no hay contador porque no hay servidor que pague nadie: la app funciona entera en tu navegador.' },
       { q: '¿Necesito registrarme o dar mi email?', a: 'No. Entras y facturas. Tus datos se guardan en tu propio dispositivo (y en la carpeta o nube que tú elijas como copia de seguridad), no en nuestros servidores.' },
       { q: '¿Sirve para autónomos en España?', a: 'Está pensado para eso: IVA español, retención de IRPF (7 %/15 %), recargo de equivalencia, inversión del sujeto pasivo, formato de números español y resumen trimestral para el 303/130.' },
+      { q: '¿Y Verifactu? ¿Estas facturas valen?', a: 'Presufact genera las facturas en PDF como borrador/proforma, documentos no sujetos a Verifactu. Para la facturación oficial, la obligación de software certificado entra en vigor el 1/1/2027 (sociedades) y el 1/7/2027 (autónomos): consúltalo con tu gestor.' },
     ],
     cta: 'Crear mi primera factura',
     related: { to: '/generador-de-presupuestos', label: 'También: generador de presupuestos gratis' },
@@ -86,7 +87,7 @@ export default function SeoLanding({ variant = 'facturas' }) {
   useEffect(() => {
     document.title = c.title;
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Crear facturas y presupuestos gratis, sin registro'; };
+    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
   }, [variant]);
 
   const goApp = () => navigate('/app');
@@ -174,7 +175,7 @@ export default function SeoLanding({ variant = 'facturas' }) {
 
       <footer className="border-t border-gray-100 py-8 mt-8">
         <p className="text-center text-xs text-gray-400 max-w-2xl mx-auto px-4">
-          Presufact · generador gratuito de facturas y presupuestos · tus datos se guardan localmente en tu dispositivo
+          Presufact · generador gratuito de presupuestos y borradores de factura · tus datos se guardan localmente en tu dispositivo
         </p>
       </footer>
     </div>

@@ -23,7 +23,6 @@ const CLIENTES = [
   { nombre: 'INMOBILIARIA PRINCIPADO S.A.', nif: 'A33667788', direccion: 'Plaza del Ayuntamiento 2', cp: '33001', ciudad: 'Oviedo', provincia: 'Asturias', email: 'admin@inmoprincipado.es' },
 ];
 
-const hoy = () => new Date().toISOString().split('T')[0];
 const diasAtras = (n) => new Date(Date.now() - n * 86400000).toISOString().split('T')[0];
 
 export async function seedDemoData() {

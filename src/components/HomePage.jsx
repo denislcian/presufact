@@ -21,29 +21,12 @@ export default function HomePage() {
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">{companyName || 'Presufact'}</h1>
-        <p className="text-gray-500 text-lg">Facturas y presupuestos profesionales</p>
+        <p className="text-gray-500 text-lg">Presupuestos y facturas profesionales</p>
         <p className="text-xs text-gray-400 mt-2">Todos los datos se guardan en tu navegador. No se envia nada a ningun servidor.</p>
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-2 gap-6 mb-8">
-        {/* Facturas */}
-        <button onClick={() => navigate('/facturas')}
-          className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-200 p-8 text-left">
-          <div className="flex items-start justify-between mb-6">
-            <div className="p-3 bg-blue-50 group-hover:bg-blue-100 rounded-xl transition">
-              <FileText size={28} className="text-accent" />
-            </div>
-            <ArrowRight size={20} className="text-gray-300 group-hover:text-accent group-hover:translate-x-1 transition-all" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">Facturas</h2>
-          <p className="text-gray-500 text-sm mb-4">Crea, edita y gestiona tus facturas profesionales</p>
-          <div className="flex items-center gap-2">
-            <span className="text-3xl font-bold text-accent">{counts.facturas}</span>
-            <span className="text-sm text-gray-400">{counts.facturas === 1 ? 'factura' : 'facturas'}</span>
-          </div>
-        </button>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         {/* Presupuestos */}
         <button onClick={() => navigate('/presupuestos')}
           className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-purple-300 transition-all duration-200 p-8 text-left">
@@ -58,6 +41,23 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
             <span className="text-3xl font-bold text-purple-600">{counts.presupuestos}</span>
             <span className="text-sm text-gray-400">{counts.presupuestos === 1 ? 'presupuesto' : 'presupuestos'}</span>
+          </div>
+        </button>
+
+        {/* Facturas */}
+        <button onClick={() => navigate('/facturas')}
+          className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-200 p-8 text-left">
+          <div className="flex items-start justify-between mb-6">
+            <div className="p-3 bg-blue-50 group-hover:bg-blue-100 rounded-xl transition">
+              <FileText size={28} className="text-accent" />
+            </div>
+            <ArrowRight size={20} className="text-gray-300 group-hover:text-accent group-hover:translate-x-1 transition-all" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-1">Facturas</h2>
+          <p className="text-gray-500 text-sm mb-4">Crea, edita y gestiona tus facturas profesionales</p>
+          <div className="flex items-center gap-2">
+            <span className="text-3xl font-bold text-accent">{counts.facturas}</span>
+            <span className="text-sm text-gray-400">{counts.facturas === 1 ? 'factura' : 'facturas'}</span>
           </div>
         </button>
       </div>

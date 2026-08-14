@@ -55,7 +55,7 @@ export default function Onboarding({ onDone }) {
             </div>
             <span className="text-2xl font-extrabold text-gray-800">Presufact</span>
           </div>
-          <p className="text-gray-500 text-sm">Facturas y presupuestos profesionales en tu navegador</p>
+          <p className="text-gray-500 text-sm">Presupuestos y facturas profesionales en tu navegador</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-7">
@@ -69,39 +69,39 @@ export default function Onboarding({ onDone }) {
           {step === 1 && (
             <>
               <h2 className="text-xl font-bold text-gray-800 mb-1">Bienvenido 👋</h2>
-              <p className="text-sm text-gray-500 mb-5">Configura los datos de tu empresa. Apareceran en tus facturas y presupuestos.</p>
+              <p className="text-sm text-gray-500 mb-5">Configura los datos de tu empresa. Apareceran en tus presupuestos y facturas.</p>
 
               <div className="space-y-4">
                 <div>
-                  <label className={labelClass}>Nombre o razon social *</label>
-                  <input className={inputClass} autoFocus value={emisor.nombre} onChange={e => update('nombre', e.target.value)} placeholder="Mi Empresa, S.L." />
+                  <label htmlFor="ob-nombre" className={labelClass}>Nombre o razon social *</label>
+                  <input id="ob-nombre" className={inputClass} autoFocus value={emisor.nombre} onChange={e => update('nombre', e.target.value)} placeholder="Mi Empresa, S.L." />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>NIF / CIF</label>
-                    <input className={inputClass} value={emisor.nif} onChange={e => update('nif', e.target.value)} placeholder="B12345678" />
+                    <label htmlFor="ob-nif" className={labelClass}>NIF / CIF</label>
+                    <input id="ob-nif" className={inputClass} value={emisor.nif} onChange={e => update('nif', e.target.value)} placeholder="B12345678" />
                   </div>
                   <div>
-                    <label className={labelClass}>Actividad (opcional)</label>
-                    <input className={inputClass} value={emisor.subtitulo} onChange={e => update('subtitulo', e.target.value)} placeholder="Reformas, consultoria..." />
+                    <label htmlFor="ob-actividad" className={labelClass}>Actividad (opcional)</label>
+                    <input id="ob-actividad" className={inputClass} value={emisor.subtitulo} onChange={e => update('subtitulo', e.target.value)} placeholder="Reformas, consultoria..." />
                   </div>
                 </div>
                 <div>
-                  <label className={labelClass}>Direccion</label>
-                  <input className={inputClass} value={emisor.direccion} onChange={e => update('direccion', e.target.value)} placeholder="Calle Mayor 1" />
+                  <label htmlFor="ob-direccion" className={labelClass}>Direccion</label>
+                  <input id="ob-direccion" className={inputClass} value={emisor.direccion} onChange={e => update('direccion', e.target.value)} placeholder="Calle Mayor 1" />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className={labelClass}>CP</label>
-                    <input className={inputClass} value={emisor.cp} onChange={e => update('cp', e.target.value)} />
+                    <label htmlFor="ob-cp" className={labelClass}>CP</label>
+                    <input id="ob-cp" className={inputClass} value={emisor.cp} onChange={e => update('cp', e.target.value)} />
                   </div>
                   <div>
-                    <label className={labelClass}>Ciudad</label>
-                    <input className={inputClass} value={emisor.ciudad} onChange={e => update('ciudad', e.target.value)} />
+                    <label htmlFor="ob-ciudad" className={labelClass}>Ciudad</label>
+                    <input id="ob-ciudad" className={inputClass} value={emisor.ciudad} onChange={e => update('ciudad', e.target.value)} />
                   </div>
                   <div>
-                    <label className={labelClass}>Provincia</label>
-                    <input className={inputClass} value={emisor.provincia} onChange={e => update('provincia', e.target.value)} />
+                    <label htmlFor="ob-provincia" className={labelClass}>Provincia</label>
+                    <input id="ob-provincia" className={inputClass} value={emisor.provincia} onChange={e => update('provincia', e.target.value)} />
                   </div>
                 </div>
               </div>
@@ -121,7 +121,7 @@ export default function Onboarding({ onDone }) {
                 {saving ? 'Preparando la demo...' : '✨ O explora primero con datos de ejemplo'}
               </button>
               <p className="text-xs text-gray-400 text-center mt-1.5">
-                Verás la app llena de facturas y presupuestos ficticios. Podrás borrarlo todo con un clic.
+                Verás la app llena de presupuestos y facturas ficticios. Podrás borrarlo todo con un clic.
               </p>
             </>
           )}
@@ -154,8 +154,8 @@ export default function Onboarding({ onDone }) {
                 </div>
 
                 <div>
-                  <label className={labelClass}>IBAN / Cuenta bancaria (opcional)</label>
-                  <input className={inputClass + ' font-mono'} value={emisor.iban} onChange={e => update('iban', e.target.value)} placeholder="ES00 0000 0000 0000 0000 0000" />
+                  <label htmlFor="ob-iban" className={labelClass}>IBAN / Cuenta bancaria (opcional)</label>
+                  <input id="ob-iban" className={inputClass + ' font-mono'} value={emisor.iban} onChange={e => update('iban', e.target.value)} placeholder="ES00 0000 0000 0000 0000 0000" />
                   <p className="text-xs text-gray-400 mt-1">Se añade automaticamente a tus facturas nuevas.</p>
                 </div>
 

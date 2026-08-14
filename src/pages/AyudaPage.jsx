@@ -53,11 +53,11 @@ function TicketForm() {
         Cuéntanos el problema o tu sugerencia. El email es opcional — solo para poder responderte.
       </p>
       <div className="mt-4 grid gap-3">
-        <input className={inputClass} placeholder="Asunto (ej: la importación de un PDF falla)" maxLength={120}
+        <input className={inputClass} aria-label="Asunto" placeholder="Asunto (ej: la importación de un PDF falla)" maxLength={120}
           value={form.asunto} onChange={e => setForm(f => ({ ...f, asunto: e.target.value }))} />
-        <input className={inputClass} type="email" placeholder="Tu email (opcional)" maxLength={120}
+        <input className={inputClass} aria-label="Tu email (opcional)" type="email" placeholder="Tu email (opcional)" maxLength={120}
           value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-        <textarea className={inputClass + ' h-28'} placeholder="Qué hacías, qué esperabas y qué pasó. Sin datos reales de clientes, por favor." maxLength={4000}
+        <textarea className={inputClass + ' h-28'} aria-label="Mensaje" placeholder="Qué hacías, qué esperabas y qué pasó. Sin datos reales de clientes, por favor." maxLength={4000}
           value={form.mensaje} onChange={e => setForm(f => ({ ...f, mensaje: e.target.value }))} />
       </div>
       {estado === 'error' && <p className="mt-2 text-sm text-red-500">{errorMsg}</p>}
@@ -83,7 +83,7 @@ const FAQS = [
   { q: 'He perdido mis facturas, ¿puedo recuperarlas?', a: 'Sí, casi siempre. La app guarda copias automáticas: si detecta la base vacía con un backup disponible te ofrecerá restaurarlo al entrar. También puedes ir a Ajustes → Historial de backups y restaurar cualquiera, o importar el archivo JSON de tu carpeta de backup (busca "presufact-backup" en la carpeta que elegiste).' },
   { q: '¿Cómo hago que las copias se suban a mi nube?', a: 'En Ajustes → Backup automático, elige como carpeta una que esté dentro de OneDrive, Google Drive o Dropbox. Tu programa de sincronización subirá cada copia a tu nube automáticamente. En el móvil, usa "Enviar backup a tu nube" (abre el menú de compartir).' },
   { q: 'La importación de un PDF no lee bien los datos', a: 'Los PDFs generados por Presufact se reimportan con exactitud. Con PDFs de otros programas la lectura es aproximada: revisa siempre la vista previa antes de importar y corrige lo que falte en el editor. Si un formato concreto se lee mal, repórtalo (abajo) adjuntando un PDF de ejemplo sin datos sensibles.' },
-  { q: '¿Puedo facturar legalmente con Presufact? ¿Y Verifactu?', a: 'Presufact genera presupuestos, proformas y borradores (no sujetos a Verifactu) y facturas en PDF como las que se han emitido toda la vida. La obligación de software certificado Verifactu para la facturación oficial entra en vigor el 1/1/2027 (sociedades) y el 1/7/2027 (autónomos). Lee la guía completa y consúltalo con tu gestor.' },
+  { q: '¿Puedo facturar legalmente con Presufact? ¿Y Verifactu?', a: 'Presufact genera presupuestos, proformas y borradores de factura en PDF — documentos no sujetos a Verifactu. La obligación de software certificado Verifactu para la facturación oficial entra en vigor el 1/1/2027 (sociedades) y el 1/7/2027 (autónomos): para esa facturación usa un software certificado y consúltalo con tu gestor.' },
   { q: '¿Cómo firmo un presupuesto con el cliente delante?', a: 'Abre el presupuesto → pestaña Condiciones → recuadro de firma: el cliente firma con el dedo (o subes una imagen de la firma). Al generar el PDF, la firma aparece sobre la línea de conformidad "El cliente".' },
   { q: '¿Cómo mando la factura a mi gestoría?', a: 'En Facturas, filtra el año y pulsa "ZIP gestoría": descarga todos los PDFs más un CSV con el desglose (base, IVA, IRPF) listo para Excel. También tienes el resumen por trimestres en la pestaña Impuestos.' },
   { q: 'La app va lenta o se comporta raro', a: 'Descarga un backup primero (Ajustes → Descargar backup). Después prueba a recargar con Ctrl+Mayús+R. Si persiste, borra los datos del sitio en tu navegador y restaura el backup: quedará como nueva.' },
@@ -96,7 +96,7 @@ export default function AyudaPage() {
   useEffect(() => {
     document.title = 'Ayuda y soporte · Presufact';
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Crear facturas y presupuestos gratis, sin registro'; };
+    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
   }, []);
 
   return (
@@ -173,7 +173,7 @@ export default function AyudaPage() {
 
       <footer className="border-t border-gray-100 py-8 mt-8">
         <p className="text-center text-xs text-gray-400 max-w-2xl mx-auto px-4">
-          Presufact · generador gratuito de facturas y presupuestos · tus datos se guardan localmente en tu dispositivo
+          Presufact · generador gratuito de presupuestos y borradores de factura · tus datos se guardan localmente en tu dispositivo
         </p>
       </footer>
     </div>

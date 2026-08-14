@@ -11,7 +11,7 @@ export default function PrivacidadPage() {
   useEffect(() => {
     document.title = 'Privacidad y seguridad · Presufact';
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Crear facturas y presupuestos gratis, sin registro'; };
+    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
   }, []);
 
   return (
@@ -127,7 +127,7 @@ export default function PrivacidadPage() {
 
       <footer className="border-t border-gray-100 py-8 mt-8">
         <p className="text-center text-xs text-gray-400 max-w-2xl mx-auto px-4">
-          Presufact · generador gratuito de facturas y presupuestos · tus datos se guardan localmente en tu dispositivo
+          Presufact · generador gratuito de presupuestos y borradores de factura · tus datos se guardan localmente en tu dispositivo
         </p>
       </footer>
     </div>

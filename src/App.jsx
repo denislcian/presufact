@@ -66,8 +66,8 @@ function AppLayout() {
 
   const NAV = [
     { to: '/app', label: 'Inicio', icon: Home, end: true },
-    { to: '/facturas', label: 'Facturas', icon: Receipt },
     { to: '/presupuestos', label: 'Presupuestos', icon: ClipboardList },
+    { to: '/facturas', label: 'Facturas', icon: Receipt },
     { to: '/clientes', label: 'Clientes', icon: Users },
     { to: '/impuestos', label: 'Impuestos', icon: Calculator },
   ];
@@ -148,7 +148,7 @@ function AppLayout() {
             <div className="relative bg-white w-64 h-full shadow-2xl flex flex-col">
               <div className="px-4 py-4 border-b border-gray-100 flex items-center justify-between">
                 {brand}
-                <button onClick={() => setMobileOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition">
+                <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" className="p-1.5 hover:bg-gray-100 rounded-lg transition">
                   <X size={18} className="text-gray-500" />
                 </button>
               </div>

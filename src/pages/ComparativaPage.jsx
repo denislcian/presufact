@@ -5,13 +5,13 @@ import { FileText, ArrowRight, ArrowLeft, Check, X as XIcon } from 'lucide-react
 // Pagina SEO: alternativa gratuita a los programas de facturacion de pago.
 // Ataca las busquedas "alternativa a Billin/Contasimple/FacturaDirecta gratis".
 const FILAS = [
-  ['Facturas', 'Ilimitadas', '~12/año gratis', '3/mes gratis', 'Desde 6,6 €/mes', 'Sin límite'],
   ['Presupuestos', 'Ilimitados', 'De pago', 'Sí', 'Sí', 'No'],
+  ['Firma del cliente en pantalla', 'Sí', 'No', 'No', 'No', 'No'],
+  ['Facturas', 'Ilimitadas', '~12/año gratis', '3/mes gratis', 'Desde 6,6 €/mes', 'Sin límite'],
   ['Clientes', 'Ilimitados', 'Limitados', '10', 'Según plan', 'Sin libreta'],
   ['Tu logo y color', 'Sí', 'De pago', 'Limitado', 'Sí', 'No'],
   ['IVA multi-tipo + IRPF + R.E.', 'Sí', 'Sí', 'Sí', 'Sí', 'Parcial'],
   ['Resumen fiscal 303/130', 'Gratis', 'De pago', 'No', 'De pago', 'No'],
-  ['Firma del cliente en pantalla', 'Sí', 'No', 'No', 'No', 'No'],
   ['Registro obligatorio', 'No', 'Sí', 'Sí', 'Sí', 'Cl@ve/certificado'],
   ['Funciona sin internet', 'Sí', 'No', 'No', 'No', 'No'],
   ['Tus datos', 'En tu dispositivo', 'En su nube', 'En su nube', 'En su nube', 'En la AEAT'],
@@ -25,7 +25,7 @@ export default function ComparativaPage() {
   useEffect(() => {
     document.title = 'Alternativa gratis a Billin, Contasimple y FacturaDirecta sin límites · Presufact';
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Crear facturas y presupuestos gratis, sin registro'; };
+    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
   }, []);
 
   const goApp = () => navigate('/app');
@@ -83,8 +83,10 @@ export default function ComparativaPage() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-gray-400 mt-3">
+        <p className="text-xs text-gray-500 mt-3">
           Datos de los planes publicados por cada servicio (agosto 2026). Si algo ha cambiado, dínoslo y lo corregimos.
+          Presufact genera las facturas en PDF como borrador/proforma (documentos no sujetos a
+          Verifactu) — <Link to="/verifactu" className="text-accent underline hover:no-underline">lee la guía</Link>.
         </p>
 
         <div className="mt-12 space-y-6">
@@ -135,7 +137,7 @@ export default function ComparativaPage() {
 
       <footer className="border-t border-gray-100 py-8 mt-8">
         <p className="text-center text-xs text-gray-400 max-w-2xl mx-auto px-4">
-          Presufact · generador gratuito de facturas y presupuestos · tus datos se guardan localmente en tu dispositivo
+          Presufact · generador gratuito de presupuestos y borradores de factura · tus datos se guardan localmente en tu dispositivo
         </p>
       </footer>
     </div>

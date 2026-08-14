@@ -1,12 +1,20 @@
 {
   "name": "presufact",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Presupuestos y facturas profesionales en PDF — gratis, sin registro y 100% local. Hecho para autónomos y pequeños negocios en España.",
+  "homepage": "https://presufactu.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/denislcian/presufact.git"
+  },
+  "author": "Denis Lucian Morar (https://github.com/denislcian)",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -32,6 +40,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "tailwindcss": "^4.2.2",
-    "vite": "^8.0.4"
+    "vite": "^8.0.4",
+    "vitest": "^4.1.10"
   }
 }

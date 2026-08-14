@@ -1,7 +1,7 @@
 {
-  "name": "Presufact · Facturas y Presupuestos",
+  "name": "Presufact · Presupuestos y Facturas",
   "short_name": "Presufact",
-  "description": "Crea facturas y presupuestos profesionales en PDF. 100% local y privado.",
+  "description": "Crea presupuestos y facturas profesionales en PDF. 100% local y privado.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

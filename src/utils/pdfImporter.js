@@ -484,7 +484,6 @@ export function parseInvoiceText(text, emisorHints = null) {
 
   const upperText = text.toUpperCase();
   const isPresupuesto = /^\s*PRESUPUESTO/im.test(upperText) || (/PRESUPUESTO/.test(upperText) && !/^FACTURA/m.test(upperText));
-  const docType = isPresupuesto ? 'presupuesto' : 'factura';
   const invoice = emptyInvoice(isPresupuesto);
 
   const hintNombre = (emisorHints?.nombre || '').toUpperCase().trim();

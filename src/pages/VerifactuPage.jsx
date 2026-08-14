@@ -10,7 +10,7 @@ export default function VerifactuPage() {
   useEffect(() => {
     document.title = 'Verifactu para autónomos: fechas, obligaciones y cómo te afecta (2026-2027) · Presufact';
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Crear facturas y presupuestos gratis, sin registro'; };
+    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
   }, []);
 
   const goApp = () => navigate('/app');
@@ -138,7 +138,7 @@ export default function VerifactuPage() {
 
       <footer className="border-t border-gray-100 py-8 mt-8">
         <p className="text-center text-xs text-gray-400 max-w-2xl mx-auto px-4">
-          Presufact · generador gratuito de facturas y presupuestos · tus datos se guardan localmente en tu dispositivo
+          Presufact · generador gratuito de presupuestos y borradores de factura · tus datos se guardan localmente en tu dispositivo
         </p>
       </footer>
     </div>

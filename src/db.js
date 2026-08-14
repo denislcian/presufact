@@ -79,7 +79,6 @@ export const DEFAULT_EMISOR = {
 };
 
 export function getDefaultDocument(docType = 'factura', emisor) {
-  const config = DOC_TYPES[docType] || DOC_TYPES.factura;
   const em = emisor || DEFAULT_EMISOR;
   const iban = em.iban || '';
 

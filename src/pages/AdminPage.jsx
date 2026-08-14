@@ -21,7 +21,7 @@ export default function AdminPage() {
     meta.name = 'robots';
     meta.content = 'noindex, nofollow';
     document.head.appendChild(meta);
-    return () => { document.head.removeChild(meta); document.title = 'Presufact — Crear facturas y presupuestos gratis, sin registro'; };
+    return () => { document.head.removeChild(meta); document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
   }, []);
 
   const load = async (tk = token) => {
@@ -104,6 +104,7 @@ export default function AdminPage() {
             </button>
           )}
           <button onClick={() => { if (window.confirm('¿Borrar este ticket definitivamente?')) action('DELETE', { id: t.id }); }}
+            aria-label="Borrar ticket" title="Borrar ticket"
             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
             <Trash2 size={14} />
           </button>
@@ -143,7 +144,7 @@ export default function AdminPage() {
             <Lock size={32} className="mx-auto text-gray-300 mb-4" />
             <h1 className="text-lg font-bold text-gray-800">Acceso de administración</h1>
             <p className="text-sm text-gray-500 mt-1 mb-5">Introduce tu token de administrador.</p>
-            <input type="password" value={input} onChange={e => setInput(e.target.value)}
+            <input type="password" aria-label="Token de administrador" value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && login()}
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent outline-none font-mono"
               placeholder="ADMIN_TOKEN" autoFocus />
