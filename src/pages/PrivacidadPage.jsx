@@ -95,6 +95,17 @@ export default function PrivacidadPage() {
           </section>
 
           <section>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">La única excepción: si nos envías un ticket de soporte</h2>
+            <p>
+              Si usas el formulario de soporte de la <Link to="/ayuda" className="text-accent underline hover:no-underline">página de ayuda</Link>,
+              lo que escribas (asunto, mensaje y tu email si decides darlo) se envía cifrado a nuestro buzón de
+              soporte para poder atenderte. Es información que tú nos das voluntariamente, se usa solo para
+              responderte, no se comparte con nadie y se elimina al resolver el ticket. Por eso el formulario te
+              pide no incluir datos reales de tus clientes.
+            </p>
+          </section>
+
+          <section>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Derechos RGPD</h2>
             <p>
               Al no tratar datos personales tuyos ni de tus clientes en ningún servidor propio, no hay ficheros
