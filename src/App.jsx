@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation, Link } from 'react-router-dom';
-import { FileText, Receipt, ClipboardList, Settings, Home, Calculator, Users, PanelLeftClose, PanelLeftOpen, Menu, X } from 'lucide-react';
+import { FileText, Receipt, ClipboardList, Settings, Home, Calculator, Users, PanelLeftClose, PanelLeftOpen, Menu, X, LifeBuoy } from 'lucide-react';
 import ClientManager from './components/ClientManager';
 import Toaster from './components/Toaster';
 import DemoBanner from './components/DemoBanner';
@@ -8,6 +8,8 @@ import LandingPage from './pages/LandingPage';
 import VerifactuPage from './pages/VerifactuPage';
 import SeoLanding from './pages/SeoLanding';
 import ComparativaPage from './pages/ComparativaPage';
+import PrivacidadPage from './pages/PrivacidadPage';
+import AyudaPage from './pages/AyudaPage';
 import HomePage from './components/HomePage';
 import InvoiceList from './components/InvoiceList';
 import InvoiceForm from './components/InvoiceForm';
@@ -118,6 +120,7 @@ function AppLayout() {
         </nav>
         <div className={`py-3 border-t border-gray-100 flex flex-col gap-1 ${collapsed ? 'px-2' : 'px-3'}`}>
           {navItem({ to: '/ajustes', label: 'Mi empresa', icon: Settings })}
+          {navItem({ to: '/ayuda', label: 'Ayuda', icon: LifeBuoy })}
           <button onClick={toggleCollapsed}
             title={collapsed ? 'Mostrar menú' : 'Ocultar menú'}
             className={`flex items-center gap-3 rounded-lg text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}`}>
@@ -153,6 +156,7 @@ function AppLayout() {
               </nav>
               <div className="py-3 px-3 border-t border-gray-100">
                 {navItem({ to: '/ajustes', label: 'Mi empresa', icon: Settings }, { onClick: () => setMobileOpen(false), forceLabel: true })}
+                {navItem({ to: '/ayuda', label: 'Ayuda', icon: LifeBuoy }, { onClick: () => setMobileOpen(false), forceLabel: true })}
               </div>
             </div>
           </div>
@@ -197,6 +201,8 @@ export default function App() {
       <Route path="/presupuesto-electricista" element={<SeoLanding variant="electricista" />} />
       <Route path="/presupuesto-pintura" element={<SeoLanding variant="pintura" />} />
       <Route path="/comparativa" element={<ComparativaPage />} />
+      <Route path="/privacidad" element={<PrivacidadPage />} />
+      <Route path="/ayuda" element={<AyudaPage />} />
 
       {/* Application area (onboarding-gated) */}
       <Route element={<AppLayout />}>

@@ -300,6 +300,8 @@ export default function LandingPage() {
             <Link to="/generador-de-presupuestos" className="text-gray-500 hover:text-accent transition">Generador de presupuestos</Link>
             <Link to="/comparativa" className="text-gray-500 hover:text-accent transition">Comparativa de precios</Link>
             <Link to="/verifactu" className="text-gray-500 hover:text-accent transition">Guía Verifactu</Link>
+            <Link to="/ayuda" className="text-gray-500 hover:text-accent transition">Ayuda</Link>
+            <Link to="/privacidad" className="text-gray-500 hover:text-accent transition">Privacidad</Link>
           </div>
           <p className="text-xs text-gray-400 max-w-2xl mx-auto">
             Presufact genera documentos en formato borrador/proforma. Para facturación oficial verifica los requisitos
