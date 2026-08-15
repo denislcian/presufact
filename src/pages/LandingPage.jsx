@@ -1,12 +1,14 @@
 import { useNavigate, Link } from 'react-router-dom';
 import {
   FileText, ClipboardList, ShieldCheck, Zap, FolderSync,
-  ArrowRight, Check, Lock, FileDown, CircleDollarSign, MonitorSmartphone, Sparkles
+  ArrowRight, Check, Lock, FileDown, CircleDollarSign, MonitorSmartphone, Sparkles,
+  LifeBuoy, LayoutDashboard, Inbox, Activity, Globe
 } from 'lucide-react';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const goApp = () => navigate('/app');
+  // La web es landing + demo: todas las llamadas a la accion entran en la demo
+  const goApp = () => navigate('/demo');
 
   const features = [
     { icon: ClipboardList, title: 'Presupuestos con firma', desc: 'Genera presupuestos con condiciones, validez y firma de aceptación del cliente en pantalla. Conviértelos en factura con un clic.' },
@@ -43,8 +45,8 @@ export default function LandingPage() {
             </div>
             <span className="text-xl font-extrabold tracking-tight">Presufact</span>
           </div>
-          <button onClick={goApp} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">
-            Empezar gratis
+          <button onClick={goApp} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition flex items-center gap-1.5">
+            <Sparkles size={15} /> Probar la demo
           </button>
         </div>
       </header>
@@ -61,16 +63,16 @@ export default function LandingPage() {
           Presupuestos con firma de aceptación del cliente y facturas con IVA, IRPF y tu logo. Sin límites y sin subir tus datos a la nube: todo se guarda en tu dispositivo. Gratis para siempre.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button onClick={goApp} className="w-full sm:w-auto px-7 py-3.5 bg-accent hover:bg-accent-light text-white rounded-xl font-semibold transition flex items-center justify-center gap-2 shadow-sm">
-            Empezar gratis <ArrowRight size={18} />
-          </button>
-          <Link to="/demo" className="w-full sm:w-auto px-7 py-3.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-xl font-semibold transition flex items-center justify-center gap-2">
-            <Sparkles size={17} /> Ver la demo con datos de ejemplo
+          <Link to="/demo" className="w-full sm:w-auto px-7 py-3.5 bg-accent hover:bg-accent-light text-white rounded-xl font-semibold transition flex items-center justify-center gap-2 shadow-sm">
+            <Sparkles size={17} /> Ver la demo con datos de ejemplo <ArrowRight size={18} />
           </Link>
+          <a href="#como-funciona" className="w-full sm:w-auto px-7 py-3.5 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition text-center">
+            Ver cómo funciona
+          </a>
         </div>
         <p className="mt-3 text-xs text-gray-500">
-          La demo carga una empresa ficticia con sus presupuestos y facturas para que explores todo sin rellenar nada.
-          {' '}<a href="#como-funciona" className="underline hover:text-gray-700">Ver cómo funciona</a>.
+          La demo carga una empresa ficticia con sus presupuestos, facturas y clientes: explora el cuadro de mando, firma un
+          presupuesto, genera un PDF… sin rellenar nada y sin registro.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-500">
           <span className="flex items-center gap-1.5"><Check size={15} className="text-emerald-500" /> Sin tarjeta</span>
@@ -191,6 +193,47 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* POR DENTRO: dashboard, soporte y panel de admin */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-extrabold text-center">Por dentro: cuadro de mando, soporte y administración</h2>
+          <p className="text-center text-gray-500 mt-2 max-w-2xl mx-auto">
+            No es solo un generador de PDF. La demo incluye todo lo que hace falta para operar el producto de verdad.
+          </p>
+          <div className="grid md:grid-cols-3 gap-5 mt-10">
+            <div className="rounded-2xl border border-gray-200 p-6 flex flex-col">
+              <div className="w-11 h-11 bg-accent/10 rounded-xl flex items-center justify-center mb-4"><LayoutDashboard size={22} className="text-accent" /></div>
+              <h3 className="font-bold text-lg">Cuadro de mando</h3>
+              <p className="text-sm text-gray-500 mt-1.5 leading-relaxed flex-1">
+                Facturación por mes, pendiente de cobro con vencidas, presupuestos abiertos, tasa de aceptación y los clientes que más facturan — calculado al instante sobre tus documentos, en tu dispositivo.
+              </p>
+              <Link to="/demo" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline">Verlo en la demo <ArrowRight size={14} /></Link>
+            </div>
+            <div className="rounded-2xl border border-gray-200 p-6 flex flex-col">
+              <div className="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center mb-4"><LifeBuoy size={22} className="text-emerald-600" /></div>
+              <h3 className="font-bold text-lg">Soporte integrado</h3>
+              <p className="text-sm text-gray-500 mt-1.5 leading-relaxed flex-1">
+                Ayuda con las dudas frecuentes y un formulario de tickets con buzón propio (serverless, con límite de envíos por IP). Es el único dato que sale de tu dispositivo, y solo si tú lo envías.
+              </p>
+              <Link to="/ayuda" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 hover:underline">Ver la ayuda y enviar un ticket <ArrowRight size={14} /></Link>
+            </div>
+            <div className="rounded-2xl border border-violet-200 bg-violet-50/40 p-6 flex flex-col">
+              <div className="w-11 h-11 bg-violet-100 rounded-xl flex items-center justify-center mb-4"><Inbox size={22} className="text-violet-600" /></div>
+              <h3 className="font-bold text-lg">Panel de administración</h3>
+              <p className="text-sm text-gray-500 mt-1.5 leading-relaxed flex-1">
+                Bandeja de tickets con tiempos de resolución, tráfico agregado del hosting y salud del servicio (disponibilidad, tests, vulnerabilidades). Protegido por token en el servidor; en la demo, abierto con cifras ficticias.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500">
+                <span className="inline-flex items-center gap-1"><Inbox size={12} /> Soporte</span>
+                <span className="inline-flex items-center gap-1"><Globe size={12} /> Tráfico</span>
+                <span className="inline-flex items-center gap-1"><Activity size={12} /> Salud</span>
+              </div>
+              <Link to="/admin?demo=1" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-violet-700 hover:underline">Abrir el panel (demo) <ArrowRight size={14} /></Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* PRIVACY */}
       <section className="bg-gradient-to-br from-slate-900 to-slate-800 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
@@ -297,11 +340,11 @@ export default function LandingPage() {
           <h2 className="text-3xl font-extrabold">Crea tu primer presupuesto gratis hoy</h2>
           <p className="mt-3 text-blue-100">Sin registro. Sin tarjeta. Sin que tus datos salgan de tu dispositivo.</p>
           <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button onClick={goApp} className="px-8 py-3.5 bg-white text-accent rounded-xl font-bold hover:bg-blue-50 transition inline-flex items-center gap-2">
-              Crear mi primer presupuesto <ArrowRight size={18} />
-            </button>
-            <Link to="/demo" className="px-8 py-3.5 bg-white/15 hover:bg-white/25 text-white border border-white/30 rounded-xl font-semibold transition inline-flex items-center gap-2">
-              <Sparkles size={17} /> Probar la demo
+            <Link to="/demo" className="px-8 py-3.5 bg-white text-accent rounded-xl font-bold hover:bg-blue-50 transition inline-flex items-center gap-2">
+              <Sparkles size={17} /> Probar la demo <ArrowRight size={18} />
+            </Link>
+            <Link to="/admin?demo=1" className="px-8 py-3.5 bg-white/15 hover:bg-white/25 text-white border border-white/30 rounded-xl font-semibold transition inline-flex items-center gap-2">
+              <Inbox size={17} /> Ver el panel de admin
             </Link>
           </div>
         </div>
@@ -323,6 +366,7 @@ export default function LandingPage() {
             <Link to="/verifactu" className="text-gray-500 hover:text-accent transition">Guía Verifactu</Link>
             <Link to="/ayuda" className="text-gray-500 hover:text-accent transition">Ayuda</Link>
             <Link to="/privacidad" className="text-gray-500 hover:text-accent transition">Privacidad</Link>
+            <Link to="/admin?demo=1" className="text-gray-500 hover:text-accent transition">Panel admin (demo)</Link>
           </div>
           <p className="text-xs text-gray-500 max-w-2xl mx-auto">
             Presufact genera documentos en formato borrador/proforma. Para facturación oficial verifica los requisitos

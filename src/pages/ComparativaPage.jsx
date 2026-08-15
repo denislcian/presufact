@@ -28,7 +28,7 @@ export default function ComparativaPage() {
     return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
   }, []);
 
-  const goApp = () => navigate('/app');
+  const goApp = () => navigate('/demo');
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -41,7 +41,7 @@ export default function ComparativaPage() {
             <span className="text-lg font-bold">Presufact</span>
           </Link>
           <button onClick={goApp} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">
-            Empezar gratis
+            Probar la demo
           </button>
         </div>
       </header>
@@ -130,7 +130,7 @@ export default function ComparativaPage() {
           <h2 className="text-2xl font-extrabold text-white">Pruébalo sin registrarte: tarda menos que leer esta página</h2>
           <button onClick={goApp}
             className="mt-5 px-7 py-3.5 bg-white text-primary rounded-xl font-bold hover:bg-blue-50 transition inline-flex items-center gap-2">
-            Empezar gratis <ArrowRight size={18} />
+            Probar la demo <ArrowRight size={18} />
           </button>
         </div>
       </main>

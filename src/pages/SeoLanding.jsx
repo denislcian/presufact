@@ -90,7 +90,7 @@ export default function SeoLanding({ variant = 'facturas' }) {
     return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
   }, [variant]);
 
-  const goApp = () => navigate('/app');
+  const goApp = () => navigate('/demo');
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -103,7 +103,7 @@ export default function SeoLanding({ variant = 'facturas' }) {
             <span className="text-lg font-bold">Presufact</span>
           </Link>
           <button onClick={goApp} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">
-            Empezar gratis
+            Probar la demo
           </button>
         </div>
       </header>

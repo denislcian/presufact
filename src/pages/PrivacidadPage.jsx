@@ -24,8 +24,8 @@ export default function PrivacidadPage() {
             </div>
             <span className="text-lg font-bold">Presufact</span>
           </Link>
-          <button onClick={() => navigate('/app')} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">
-            Ir a la app
+          <button onClick={() => navigate('/demo')} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">
+            Probar la demo
           </button>
         </div>
       </header>

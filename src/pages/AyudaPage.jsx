@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FileText, ArrowLeft, LifeBuoy, Bug, ExternalLink, Send, CheckCircle } from 'lucide-react';
+import { FileText, ArrowLeft, LifeBuoy, Bug, ExternalLink, Send, CheckCircle, Sparkles } from 'lucide-react';
+import { isDemoMode } from '../utils/demoData';
+import { addLocalDemoTicket } from '../utils/adminDemo';
 
-// Formulario de ticket: envia al buzon propio (/api/tickets). Si el buzon no
-// esta configurado o falla, se muestra el canal alternativo (GitHub).
+// Formulario de ticket: envia al buzon propio (/api/tickets). Si la app esta en
+// modo demo, el ticket se guarda ademas en este navegador para que aparezca en
+// el panel de admin (demo). Si el buzon no esta configurado y no es demo, se
+// ofrece el canal alternativo (GitHub).
 function TicketForm() {
   const [form, setForm] = useState({ asunto: '', email: '', mensaje: '' });
-  const [estado, setEstado] = useState('idle'); // idle | enviando | ok | error | sinBuzon
+  const [estado, setEstado] = useState('idle'); // idle | enviando | ok | okDemo | error | sinBuzon
   const [errorMsg, setErrorMsg] = useState('');
 
   const enviar = async () => {
@@ -17,20 +21,33 @@ function TicketForm() {
     }
     setEstado('enviando');
     setErrorMsg('');
+    const demo = await isDemoMode().catch(() => false);
+    let enviadoReal = false;
+    let errorServidor = '';
     try {
       const r = await fetch('/api/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      if (r.status === 503) { setEstado('sinBuzon'); return; }
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) { setErrorMsg(data.error || 'No se pudo enviar.'); setEstado('error'); return; }
-      setEstado('ok');
+      if (r.ok) enviadoReal = true;
+      else if (r.status !== 503) {
+        const data = await r.json().catch(() => ({}));
+        errorServidor = data.error || 'No se pudo enviar.';
+      }
+    } catch { /* sin red o sin funcion: se trata abajo */ }
+
+    if (demo) {
+      // En la demo el ticket se guarda en este navegador y aparece en /admin?demo=1
+      // (si el buzon real esta activo, ademas ha llegado alli).
+      addLocalDemoTicket(form);
+      setEstado('okDemo');
       setForm({ asunto: '', email: '', mensaje: '' });
-    } catch {
-      setEstado('sinBuzon');
+      return;
     }
+    if (enviadoReal) { setEstado('ok'); setForm({ asunto: '', email: '', mensaje: '' }); return; }
+    if (errorServidor) { setErrorMsg(errorServidor); setEstado('error'); return; }
+    setEstado('sinBuzon');
   };
 
   const inputClass = "w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none transition";
@@ -42,6 +59,20 @@ function TicketForm() {
         <p className="font-semibold text-emerald-800">Ticket enviado — ¡gracias!</p>
         <p className="text-sm text-emerald-700 mt-1">Si dejaste tu email, te responderemos ahí.</p>
         <button onClick={() => setEstado('idle')} className="mt-3 text-sm text-emerald-700 underline hover:no-underline">Enviar otro</button>
+      </div>
+    );
+  }
+
+  if (estado === 'okDemo') {
+    return (
+      <div className="bg-violet-50 border border-violet-200 rounded-2xl p-6 text-center">
+        <Sparkles size={32} className="mx-auto text-violet-500 mb-2" />
+        <p className="font-semibold text-violet-800">Ticket registrado en la demo</p>
+        <p className="text-sm text-violet-700 mt-1">Ya está en la bandeja del panel de administración: entra y resuélvelo tú mismo.</p>
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+          <Link to="/admin?demo=1" className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-semibold transition">Abrir el panel de admin (demo)</Link>
+          <button onClick={() => setEstado('idle')} className="text-sm text-violet-700 underline hover:no-underline">Enviar otro</button>
+        </div>
       </div>
     );
   }
@@ -110,8 +141,8 @@ export default function AyudaPage() {
             </div>
             <span className="text-lg font-bold">Presufact</span>
           </Link>
-          <button onClick={() => navigate('/app')} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">
-            Ir a la app
+          <button onClick={() => navigate('/demo')} className="px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">
+            Probar la demo
           </button>
         </div>
       </header>
