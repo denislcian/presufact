@@ -1,4 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
+import { formatNumber } from '../utils/formatters';
 import {
   FileText, ClipboardList, ShieldCheck, Zap, FolderSync,
   ArrowRight, Check, Lock, FileDown, CircleDollarSign, MonitorSmartphone, Sparkles,
@@ -90,66 +91,118 @@ export default function LandingPage() {
               <span className="w-3 h-3 rounded-full bg-emerald-400"></span>
             </div>
             <div className="p-6 sm:p-8 text-left">
-              {/* Espejo del PDF real: estilo "suizo editorial" */}
-              <div className="h-1 bg-accent mb-5" />
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="text-lg font-extrabold text-gray-900">TU EMPRESA, S.L.</div>
-                  <div className="text-[11px] text-gray-400 mt-1 leading-relaxed">NIF B12345678 · 600 000 000<br />Calle Mayor 1, 33001 Oviedo</div>
+              {/* Espejo fiel del PDF real de presupuesto (pdfGenerator.js): misma
+                  estructura, mismas etiquetas y mismo formato de numeros. */}
+              <div className="h-[3px] bg-accent mb-4" />
+              <div className="flex justify-between items-start gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0">TE</div>
+                    <div className="leading-tight">
+                      <div className="text-sm font-extrabold text-gray-900 tracking-tight">TU EMPRESA</div>
+                      <div className="text-[9px] font-semibold text-accent">REFORMAS Y MANTENIMIENTO</div>
+                    </div>
+                  </div>
+                  <div className="text-[13px] font-bold text-gray-900">TU EMPRESA, S.L.</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">
+                    NIF B12345678 · 600 000 000<br />Calle Mayor 1<br />33001 Oviedo (Asturias)<br />hola@tuempresa.es · www.tuempresa.es
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Presupuesto</div>
-                  <div className="text-2xl font-extrabold text-gray-900 leading-tight">P-2026-0018</div>
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1.5">Válido hasta</div>
-                  <div className="text-xs text-gray-800">13/09/2026</div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent">Presupuesto</div>
+                  <div className="text-2xl font-extrabold text-gray-900 leading-tight">P-2026-018</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-gray-400 mt-2">Fecha</div>
+                  <div className="text-xs text-gray-800">14/08/2026</div>
                 </div>
               </div>
               <div className="border-t-2 border-accent mt-4" />
               <div className="border-t border-gray-200 mt-[2px] mb-5" />
 
-              <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Presupuesto para</div>
-              <div className="font-bold text-sm text-gray-900 mt-0.5">CLIENTE EJEMPLO S.L.</div>
-              <div className="text-[11px] text-gray-500">NIF: B87654321</div>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-gray-400">Presupuesto para</div>
+                  <div className="font-bold text-[13px] text-gray-900 mt-0.5">MARÍA FERNÁNDEZ GARCÍA</div>
+                  <div className="text-[11px] text-gray-800 leading-relaxed">C/ Uría 45, 3.º D<br />33202 Gijón<br />Asturias</div>
+                  <div className="text-[11px] text-gray-500">NIF: 10887766Z</div>
+                </div>
+                <div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-gray-400">Validez</div>
+                  <div className="text-[11px] text-gray-800 mb-1.5">30 días</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-gray-400">Plazo de ejecución</div>
+                  <div className="text-[11px] text-gray-800">2 semanas</div>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-gray-400">Objeto del presupuesto</div>
+                <div className="text-[11px] text-gray-800 mt-0.5">Reforma completa de baño principal.</div>
+              </div>
 
               <div className="mt-6">
-                <div className="grid grid-cols-5 text-[9px] font-bold uppercase tracking-widest text-gray-400 pb-1.5">
-                  <span className="col-span-2">Concepto</span><span className="text-right">Cantidad</span><span className="text-right">Precio</span><span className="text-right">Importe</span>
+                <div className="grid grid-cols-12 text-[9px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.25em] text-gray-400 pb-1.5">
+                  <span className="col-span-5">Concepto</span>
+                  <span className="col-span-2 text-right"><span className="sm:hidden">Cant.</span><span className="hidden sm:inline">Cantidad</span></span>
+                  <span className="col-span-2 text-right">Precio</span>
+                  <span className="col-span-1 text-right">Dto.</span>
+                  <span className="col-span-2 text-right">Importe</span>
                 </div>
                 <div className="border-t-2 border-gray-900" />
-                {[['Reforma de baño completo', '1,00 ud', '2.400,00', '2.400,00'], ['Alicatado de paredes', '18,00 m²', '35,00', '630,00'], ['Instalación de grifería', '3,00 ud', '90,00', '270,00']].map((r, i) => (
-                  <div key={i} className="grid grid-cols-5 text-xs py-2.5 border-b border-gray-100">
-                    <span className="col-span-2 font-semibold text-gray-800">{r[0]}</span>
-                    <span className="text-right text-gray-600">{r[1]}</span>
-                    <span className="text-right text-gray-600">{r[2]}</span>
-                    <span className="text-right font-bold text-gray-900">{r[3]}</span>
+                {[
+                  { a: 'Demolición', d: 'Retirada de sanitarios y alicatado antiguo', c: 1, u: 'ud', p: 480 },
+                  { a: 'Alicatado', d: 'Alicatado porcelánico 30x60', c: 24, u: 'm²', p: 42 },
+                  { a: 'Sanitarios', d: 'Plato de ducha, inodoro y lavabo, suministro y montaje', c: 1, u: 'ud', p: 1150 },
+                ].map((r, i) => (
+                  <div key={i} className="grid grid-cols-12 text-xs py-2.5 border-b border-gray-100 items-start">
+                    <span className="col-span-5 pr-2">
+                      <span className="block font-bold text-gray-900">{r.a}</span>
+                      <span className="block text-[10px] text-gray-500 leading-snug">{r.d}</span>
+                    </span>
+                    <span className="col-span-2 text-right text-gray-800">{formatNumber(r.c)} <span className="text-[9px] text-gray-500">{r.u}</span></span>
+                    <span className="col-span-2 text-right text-gray-800">{formatNumber(r.p)}</span>
+                    <span className="col-span-1 text-right text-gray-400"></span>
+                    <span className="col-span-2 text-right font-bold text-gray-900">{formatNumber(r.c * r.p)}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex justify-end mt-5">
+              <div className="flex justify-end mt-4">
                 <div className="w-64">
-                  <div className="flex justify-between text-xs text-gray-500 py-1"><span>Base imponible</span><span className="text-gray-800">3.300,00</span></div>
-                  <div className="flex justify-between text-xs text-gray-500 py-1"><span>IVA (10 %)</span><span className="text-gray-800">330,00</span></div>
+                  <div className="flex justify-between text-[11px] text-gray-500 py-1"><span>Base imponible</span><span className="text-gray-800">{formatNumber(2638)}</span></div>
+                  <div className="flex justify-between text-[11px] text-gray-500 py-1"><span>IVA (10 %)</span><span className="text-gray-800">{formatNumber(263.8)}</span></div>
                   <div className="border-t-2 border-accent mt-1.5 pt-2 flex justify-between items-baseline">
-                    <span className="text-xs font-bold tracking-widest text-gray-900">TOTAL</span>
-                    <span className="text-xl font-extrabold text-accent">3.630,00 €</span>
+                    <span className="text-[11px] font-bold tracking-[0.25em] text-gray-900">TOTAL</span>
+                    <span className="text-xl font-extrabold text-accent">{formatNumber(2901.8)} €</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-gray-200 flex items-end justify-between gap-6">
-                <div className="text-[9px] text-gray-400 leading-relaxed text-left">
-                  Presupuesto válido 30 días.<br />Forma de pago: 50 % a la aceptación.
-                </div>
-                <div className="text-center flex-shrink-0">
-                  <svg width="110" height="30" viewBox="0 0 110 30" className="mx-auto" aria-hidden="true">
-                    <path d="M6 24 C 18 4, 28 28, 40 12 S 60 2, 68 18 S 88 28, 104 8" fill="none" stroke="#1e3a8a" strokeWidth="1.8" strokeLinecap="round" />
-                  </svg>
-                  <div className="border-t border-gray-300 pt-1 px-4 text-[9px] font-bold uppercase tracking-widest text-gray-400">Conformidad · El cliente</div>
+              <div className="mt-6">
+                <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-gray-900 border-b border-gray-200 pb-1 mb-2">Condiciones comerciales</div>
+                <div className="text-[9px] text-gray-600 leading-relaxed space-y-0.5">
+                  <p>- Validez: este presupuesto tiene una validez de 30 días desde su fecha de emisión.</p>
+                  <p>- Forma de pago: 40 % a la aceptación, 60 % a la finalización de los trabajos.</p>
+                  <p>- Los precios indicados no incluyen IVA salvo que se especifique lo contrario.</p>
                 </div>
               </div>
-              <div className="border-t border-gray-200 mt-4 pt-2 flex justify-between text-[9px] text-gray-400">
-                <span>TU EMPRESA, S.L. · NIF B12345678 · Calle Mayor 1, 33001 Oviedo</span>
+
+              <div className="mt-6">
+                <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-gray-900 border-b border-gray-200 pb-1">Conformidad</div>
+                <div className="grid grid-cols-2 gap-10 mt-8">
+                  <div className="text-center">
+                    <div className="h-7" />
+                    <div className="border-t border-gray-800 pt-1 text-[9px] text-gray-500">La empresa</div>
+                  </div>
+                  <div className="text-center">
+                    <svg width="110" height="28" viewBox="0 0 110 30" className="mx-auto" aria-hidden="true">
+                      <path d="M6 24 C 18 4, 28 28, 40 12 S 60 2, 68 18 S 88 28, 104 8" fill="none" stroke="#1e3a8a" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                    <div className="border-t border-gray-800 pt-1 text-[9px] text-gray-500">El cliente</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 mt-6 pt-2 flex justify-between text-[9px] text-gray-400">
+                <span>TU EMPRESA, S.L. · NIF B12345678 · Calle Mayor 1, 33001 Oviedo · www.tuempresa.es</span>
                 <span className="whitespace-nowrap flex-shrink-0 ml-3">Página 1 de 1</span>
               </div>
             </div>
