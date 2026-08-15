@@ -65,7 +65,7 @@ export default function InvoiceList({ docType = 'factura' }) {
   const handleDelete = async (id) => {
     await deleteDocument(docType, id);
     setConfirmDelete(null);
-    toast(`${config.label} eliminado (hay backup automático previo)`, 'info');
+    toast(`${config.label} ${docType === 'factura' ? 'eliminada' : 'eliminado'} (hay backup automático previo)`, 'info');
     load();
   };
 
@@ -129,7 +129,7 @@ export default function InvoiceList({ docType = 'factura' }) {
       `Te adjunto ${docType === 'factura' ? 'la factura' : 'el presupuesto'} ${inv.invoiceNumber}` +
         `${emisorNombre ? ' de ' + emisorNombre : ''} por un total de ${total} EUR.`,
       '',
-      '(El PDF se acaba de descargar en tu equipo: adjuntalo a este correo antes de enviarlo.)',
+      '(El PDF se acaba de descargar en tu equipo: adjúntalo a este correo antes de enviarlo.)',
       '',
       'Un saludo'
     ].join('\n');
@@ -173,7 +173,7 @@ export default function InvoiceList({ docType = 'factura' }) {
       documentType: 'Factura',
       invoiceNumber: nextNum,
       date: new Date().toISOString().split('T')[0],
-      formaPago: 'TRANSFERENCIA BANCARIA A LA RECEPCION DE LA FACTURA',
+      formaPago: 'TRANSFERENCIA BANCARIA A LA RECEPCIÓN DE LA FACTURA',
       descripcionTrabajo: data.descripcionObra || '',
       vencimientos: [{ fecha: '', importe: '', domiciliacion: '', oficina: '', numeroCuenta: '' }],
       deducciones: [],
@@ -194,13 +194,17 @@ export default function InvoiceList({ docType = 'factura' }) {
 
   // Factura rectificativa: serie R- propia, lineas en negativo y referencia a la original.
   const handleRectificativa = async (inv) => {
-    if (!window.confirm(`Crear una factura rectificativa (abono) de la factura ${inv.invoiceNumber}?\nSe generara con las cantidades en negativo para anularla o corregirla.`)) return;
-    const { id: _, createdAt, updatedAt, ...data } = inv;
+    if (!window.confirm(`Crear una factura rectificativa (abono) de la factura ${inv.invoiceNumber}?\nSe generará con las cantidades en negativo para anularla o corregirla.`)) return;
+    // Sin id/fechas y sin lo que no debe heredar una rectificativa (proforma,
+    // historial de estados, vinculo con presupuesto, vencimientos)
+    const { id: _, createdAt, updatedAt, esProforma, estadoHistorial, origenPresupuesto, vencimientos, ...data } = inv;
     const all = await getAllDocuments('factura');
-    const serieR = all.filter(f => /^R-\d+$/.test(f.invoiceNumber || '')).length + 1;
+    // Siguiente de la serie R-: maximo numerico + 1 (contar fallaria al borrar una intermedia)
+    const maxR = all.reduce((m, f) => { const mm = /^R-(\d+)$/.exec(f.invoiceNumber || ''); return mm ? Math.max(m, parseInt(mm[1], 10)) : m; }, 0);
     const rectif = {
       ...data,
-      invoiceNumber: 'R-' + String(serieR).padStart(4, '0'),
+      invoiceNumber: 'R-' + String(maxR + 1).padStart(4, '0'),
+      vencimientos: [],
       date: new Date().toISOString().split('T')[0],
       lineas: (data.lineas || []).map(l => ({
         ...l,
@@ -219,7 +223,7 @@ export default function InvoiceList({ docType = 'factura' }) {
   const buildCSV = () => {
     const sep = ';'; // Excel-ES uses semicolon
     const esNum = (n) => formatNumber(n); // "1.234,56"
-    const header = ['Numero', 'Fecha', 'Cliente', 'NIF', 'Base imponible', 'IVA %', 'Cuota IVA', 'R.E.', 'IRPF %', 'Cuota IRPF', 'Total', 'Estado'].join(sep);
+    const header = ['Número', 'Fecha', 'Cliente', 'NIF', 'Base imponible', 'IVA %', 'Cuota IVA', 'R.E.', 'IRPF %', 'Cuota IRPF', 'Total', 'Estado'].join(sep);
     const rows = filtered.map(inv => {
       const iva = inv.iva || { tipo: 21 };
       const tax = calcInvoiceTaxBreakdown(inv.lineas || [], iva, inv.deducciones);
@@ -263,19 +267,19 @@ export default function InvoiceList({ docType = 'factura' }) {
   return (
     <div className="max-w-[1600px] mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">{config.labelPlural}</h1>
           <p className="text-gray-500 mt-1">Gestiona y genera tus {config.labelPlural.toLowerCase()}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button onClick={handleExportCSV} disabled={filtered.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium text-sm disabled:opacity-40"
+            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium text-sm disabled:opacity-40"
             title="Exportar listado a CSV (Excel)">
             <FileSpreadsheet size={18} /> CSV
           </button>
           <button onClick={handleExportZIP} disabled={filtered.length === 0 || zipping}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium text-sm disabled:opacity-40"
+            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium text-sm disabled:opacity-40"
             title="Descargar un ZIP con todos los PDFs de la vista + el CSV — listo para tu gestoría">
             <Download size={18} /> {zipping ? 'Generando...' : 'ZIP gestoría'}
           </button>
@@ -291,7 +295,7 @@ export default function InvoiceList({ docType = 'factura' }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg"><FileText size={20} className="text-accent" /></div>
@@ -326,7 +330,7 @@ export default function InvoiceList({ docType = 'factura' }) {
               <div className="text-2xl font-bold text-gray-800">
                 {invoices.length > 0 ? formatDateES(invoices[0]?.date) : '-'}
               </div>
-              <div className="text-sm text-gray-500">{docType === 'factura' ? 'Ultima factura' : 'Ultimo presupuesto'}</div>
+              <div className="text-sm text-gray-500">{docType === 'factura' ? 'Última factura' : 'Último presupuesto'}</div>
             </div>
           </div>
         </div>
@@ -338,7 +342,7 @@ export default function InvoiceList({ docType = 'factura' }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none shadow-sm"
-            placeholder="Buscar por numero, cliente o fecha..."
+            aria-label="Buscar" placeholder="Buscar por número, cliente o fecha..."
             value={search} onChange={e => setSearch(e.target.value)}
           />
         </div>
@@ -352,7 +356,7 @@ export default function InvoiceList({ docType = 'factura' }) {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
         {loading ? (
           <div className="flex items-center justify-center h-32">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
@@ -361,7 +365,7 @@ export default function InvoiceList({ docType = 'factura' }) {
           <div className="text-center py-16">
             <FileText size={48} className="mx-auto text-gray-300 mb-3" />
             <p className="text-gray-500 text-lg">
-              {search ? `No se encontraron ${config.labelPlural.toLowerCase()}` : `No hay ${config.labelPlural.toLowerCase()} todavia`}
+              {search ? `No se encontraron ${config.labelPlural.toLowerCase()}` : `No hay ${config.labelPlural.toLowerCase()} todavía`}
             </p>
             {!search && (
               <button onClick={() => navigate(config.route + (docType === 'factura' ? '/nueva' : '/nuevo'))} className="mt-4 px-4 py-2 bg-accent text-white rounded-lg text-sm hover:bg-accent-light transition">
@@ -373,7 +377,7 @@ export default function InvoiceList({ docType = 'factura' }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-4 py-3 text-left font-semibold text-gray-600">N.o</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">N.º</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Fecha</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Cliente</th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">Total (IVA inc.)</th>
@@ -408,34 +412,34 @@ export default function InvoiceList({ docType = 'factura' }) {
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => navigate(`${config.route}/editar/${inv.id}`)}
                           className="p-2 hover:bg-blue-50 rounded-lg transition cursor-pointer" title="Editar">
-                          <Edit3 size={16} className="text-gray-400 hover:text-accent" />
+                          <Edit3 size={16} className="text-gray-500 hover:text-accent" />
                         </button>
                         <button onClick={() => handleDownloadPDF(inv)}
                           className="p-2 hover:bg-green-50 rounded-lg transition cursor-pointer" title="Descargar PDF">
-                          <Download size={16} className="text-gray-400 hover:text-green-600" />
+                          <Download size={16} className="text-gray-500 hover:text-green-600" />
                         </button>
                         <button onClick={() => handleShare(inv)}
                           className="p-2 hover:bg-emerald-50 rounded-lg transition cursor-pointer" title="Compartir (WhatsApp)">
-                          <Share2 size={16} className="text-gray-400 hover:text-emerald-600" />
+                          <Share2 size={16} className="text-gray-500 hover:text-emerald-600" />
                         </button>
                         <button onClick={() => handleEmail(inv)}
                           className="p-2 hover:bg-sky-50 rounded-lg transition cursor-pointer" title="Enviar por email (descarga el PDF y abre tu correo)">
-                          <Mail size={16} className="text-gray-400 hover:text-sky-600" />
+                          <Mail size={16} className="text-gray-500 hover:text-sky-600" />
                         </button>
                         <button onClick={() => handleDuplicate(inv.id)}
                           className="p-2 hover:bg-purple-50 rounded-lg transition cursor-pointer" title="Duplicar">
-                          <Copy size={16} className="text-gray-400 hover:text-purple-600" />
+                          <Copy size={16} className="text-gray-500 hover:text-purple-600" />
                         </button>
                         {docType === 'presupuesto' && (
                           <button onClick={() => handleConvertToFactura(inv)}
                             className="p-2 hover:bg-green-50 rounded-lg transition cursor-pointer" title="Convertir a factura">
-                            <ArrowRightCircle size={16} className="text-gray-400 hover:text-green-600" />
+                            <ArrowRightCircle size={16} className="text-gray-500 hover:text-green-600" />
                           </button>
                         )}
                         {docType === 'factura' && !/^R-/.test(inv.invoiceNumber || '') && (
                           <button onClick={() => handleRectificativa(inv)}
                             className="p-2 hover:bg-orange-50 rounded-lg transition cursor-pointer" title="Crear rectificativa (abono)">
-                            <Undo2 size={16} className="text-gray-400 hover:text-orange-500" />
+                            <Undo2 size={16} className="text-gray-500 hover:text-orange-500" />
                           </button>
                         )}
                         {docType === 'factura' && (
@@ -447,12 +451,12 @@ export default function InvoiceList({ docType = 'factura' }) {
                             } catch (e) { toast('No se pudo generar el Facturae: ' + e.message, 'error'); }
                           }}
                             className="p-2 hover:bg-indigo-50 rounded-lg transition cursor-pointer" title="Facturae XML (para FACe / administraciones públicas)">
-                            <FileCode2 size={16} className="text-gray-400 hover:text-indigo-600" />
+                            <FileCode2 size={16} className="text-gray-500 hover:text-indigo-600" />
                           </button>
                         )}
                         <button onClick={() => setConfirmDelete(inv.id)}
                           className="p-2 hover:bg-red-50 rounded-lg transition cursor-pointer" title="Eliminar">
-                          <Trash2 size={16} className="text-gray-400 hover:text-red-500" />
+                          <Trash2 size={16} className="text-gray-500 hover:text-red-500" />
                         </button>
                       </div>
                     </td>
@@ -472,7 +476,7 @@ export default function InvoiceList({ docType = 'factura' }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setConfirmDelete(null)}>
           <div className="bg-white rounded-xl p-6 shadow-xl max-w-sm" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-800 mb-2">Eliminar {config.label.toLowerCase()}</h3>
-            <p className="text-sm text-gray-600 mb-4">Se hara un backup automatico antes de eliminar, pero la accion no se puede deshacer desde la interfaz.</p>
+            <p className="text-sm text-gray-600 mb-4">Se hará un backup automático antes de eliminar, pero la acción no se puede deshacer desde la interfaz.</p>
             <div className="flex gap-2 justify-end">
               <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 transition">Cancelar</button>
               <button onClick={() => handleDelete(confirmDelete)} className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition">Eliminar</button>

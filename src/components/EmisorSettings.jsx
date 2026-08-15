@@ -35,6 +35,7 @@ export default function EmisorSettings() {
   const handleSave = async () => {
     await saveEmisorSettings(emisor);
     invalidateLogoCache();
+    window.dispatchEvent(new CustomEvent('presufact-emisor-changed'));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -51,11 +52,20 @@ export default function EmisorSettings() {
   const handleShareBackup = async () => {
     try {
       const how = await shareBackup();
-      setBackupMsg(how === 'shared' ? 'Backup compartido: guardalo en tu nube' : 'Backup descargado (tu navegador no soporta compartir archivos)');
+      setBackupMsg(how === 'shared' ? 'Backup compartido: guárdalo en tu nube' : 'Backup descargado (tu navegador no soporta compartir archivos)');
     } catch (err) {
       if (err.name !== 'AbortError') setBackupMsg('Error: ' + err.message);
     }
     setTimeout(() => setBackupMsg(''), 4000);
+  };
+
+  // Un backup trae su propio emisor: refrescar formulario, logo y sidebar para
+  // no pisar lo restaurado si el usuario pulsa Guardar despues
+  const refrescarTrasRestaurar = async () => {
+    setEmisor(await getEmisorSettings());
+    invalidateLogoCache();
+    setRecoverySources(listRecoverySources());
+    window.dispatchEvent(new CustomEvent('presufact-emisor-changed'));
   };
 
   const handleImportFile = async (e) => {
@@ -63,7 +73,8 @@ export default function EmisorSettings() {
     if (!file) return;
     try {
       const result = await importBackup(file);
-      setBackupMsg(`Importadas ${result.imported} facturas (${result.skipped} duplicadas omitidas)`);
+      await refrescarTrasRestaurar();
+      setBackupMsg(`Importados ${result.imported} documentos (${result.skipped} duplicados omitidos)`);
     } catch (err) {
       setBackupMsg('Error: ' + err.message);
     }
@@ -74,7 +85,8 @@ export default function EmisorSettings() {
   const handleRestoreLocal = async (slotKey) => {
     try {
       const result = await restoreFromLocalBackup(slotKey);
-      setBackupMsg(`Restauradas ${result.imported} facturas (${result.skipped} ya existian)`);
+      await refrescarTrasRestaurar();
+      setBackupMsg(`Restaurados ${result.imported} documentos (${result.skipped} ya existían)`);
     } catch (err) {
       setBackupMsg('Error: ' + err.message);
     }
@@ -115,7 +127,7 @@ export default function EmisorSettings() {
             <RotateCcw size={14} /> Restaurar
           </button>
           <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg transition text-sm font-medium">
-            <Save size={14} /> {saved ? 'Guardado!' : 'Guardar'}
+            <Save size={14} /> {saved ? '¡Guardado!' : 'Guardar'}
           </button>
         </div>
       </div>
@@ -123,7 +135,7 @@ export default function EmisorSettings() {
       {/* Datos del emisor */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4 mb-6">
         <h2 className="text-lg font-semibold text-gray-700 border-b pb-2">Datos del Emisor</h2>
-        <p className="text-sm text-gray-500">Estos datos se usaran por defecto al crear nuevas facturas.</p>
+        <p className="text-sm text-gray-500">Estos datos se usarán por defecto al crear nuevos presupuestos y facturas.</p>
 
         {/* Logo */}
         <div className="flex items-center gap-4 pb-2">
@@ -137,7 +149,7 @@ export default function EmisorSettings() {
             <div className="flex items-center gap-2">
               <label className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm cursor-pointer transition">
                 <Upload size={14} /> Subir
-                <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleLogo} />
+                <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={handleLogo} />
               </label>
               {emisor.logo && (
                 <button onClick={() => update('logo', null)} className="text-xs text-red-500 hover:text-red-700">Quitar</button>
@@ -149,50 +161,50 @@ export default function EmisorSettings() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
-            <label className={labelClass}>Nombre / Razon Social</label>
-            <input className={inputClass} value={emisor.nombre} onChange={e => update('nombre', e.target.value)} />
+            <label htmlFor="e-nombre-razon-social" className={labelClass}>Nombre / Razón Social</label>
+            <input id="e-nombre-razon-social" className={inputClass} value={emisor.nombre} onChange={e => update('nombre', e.target.value)} />
           </div>
           <div>
-            <label className={labelClass}>NIF</label>
-            <input className={inputClass} value={emisor.nif} onChange={e => update('nif', e.target.value)} />
+            <label htmlFor="e-nif" className={labelClass}>NIF</label>
+            <input id="e-nif" className={inputClass} value={emisor.nif} onChange={e => update('nif', e.target.value)} />
           </div>
           <div>
-            <label className={labelClass}>Subtitulo</label>
-            <input className={inputClass} value={emisor.subtitulo} onChange={e => update('subtitulo', e.target.value)} />
+            <label htmlFor="e-subtitulo" className={labelClass}>Subtítulo</label>
+            <input id="e-subtitulo" className={inputClass} value={emisor.subtitulo} onChange={e => update('subtitulo', e.target.value)} />
           </div>
           <div className="col-span-2">
-            <label className={labelClass}>Direccion</label>
-            <input className={inputClass} value={emisor.direccion} onChange={e => update('direccion', e.target.value)} />
+            <label htmlFor="e-direccion" className={labelClass}>Dirección</label>
+            <input id="e-direccion" className={inputClass} value={emisor.direccion} onChange={e => update('direccion', e.target.value)} />
           </div>
           <div>
-            <label className={labelClass}>CP</label>
-            <input className={inputClass} value={emisor.cp} onChange={e => update('cp', e.target.value)} />
+            <label htmlFor="e-cp" className={labelClass}>CP</label>
+            <input id="e-cp" className={inputClass} value={emisor.cp} onChange={e => update('cp', e.target.value)} />
           </div>
           <div>
-            <label className={labelClass}>Ciudad</label>
-            <input className={inputClass} value={emisor.ciudad} onChange={e => update('ciudad', e.target.value)} />
+            <label htmlFor="e-ciudad" className={labelClass}>Ciudad</label>
+            <input id="e-ciudad" className={inputClass} value={emisor.ciudad} onChange={e => update('ciudad', e.target.value)} />
           </div>
           <div>
-            <label className={labelClass}>Provincia</label>
-            <input className={inputClass} value={emisor.provincia} onChange={e => update('provincia', e.target.value)} />
+            <label htmlFor="e-provincia" className={labelClass}>Provincia</label>
+            <input id="e-provincia" className={inputClass} value={emisor.provincia} onChange={e => update('provincia', e.target.value)} />
           </div>
           <div>
-            <label className={labelClass}>Web</label>
-            <input className={inputClass} value={emisor.web} onChange={e => update('web', e.target.value)} />
+            <label htmlFor="e-web" className={labelClass}>Web</label>
+            <input id="e-web" className={inputClass} value={emisor.web} onChange={e => update('web', e.target.value)} />
           </div>
           <div>
-            <label className={labelClass}>Telefono</label>
-            <input className={inputClass} value={emisor.telefono || ''} onChange={e => update('telefono', e.target.value)} placeholder="600 000 000" />
+            <label htmlFor="e-telefono" className={labelClass}>Teléfono</label>
+            <input id="e-telefono" className={inputClass} value={emisor.telefono || ''} onChange={e => update('telefono', e.target.value)} placeholder="600 000 000" />
           </div>
           <div>
-            <label className={labelClass}>Email</label>
-            <input className={inputClass} type="email" value={emisor.email || ''} onChange={e => update('email', e.target.value)} placeholder="hola@tuempresa.es" />
+            <label htmlFor="e-email" className={labelClass}>Email</label>
+            <input id="e-email" className={inputClass} type="email" value={emisor.email || ''} onChange={e => update('email', e.target.value)} placeholder="hola@tuempresa.es" />
           </div>
           <div className="col-span-2">
-            <label className={labelClass}>IBAN / Cuenta bancaria</label>
-            <input className={inputClass + ' font-mono'} value={emisor.iban || ''} onChange={e => update('iban', e.target.value)}
+            <label htmlFor="e-iban-cuenta-bancaria" className={labelClass}>IBAN / Cuenta bancaria</label>
+            <input id="e-iban-cuenta-bancaria" className={inputClass + ' font-mono'} value={emisor.iban || ''} onChange={e => update('iban', e.target.value)}
               placeholder="ES02 0049 3586 1921 1403 5991" />
-            <p className="text-xs text-gray-400 mt-1">Se rellena automaticamente en las observaciones y vencimientos de cada nueva factura</p>
+            <p className="text-xs text-gray-400 mt-1">Se rellena automáticamente en las observaciones y vencimientos de cada nueva factura</p>
           </div>
 
           {/* Color de marca para los PDF */}
@@ -210,7 +222,7 @@ export default function EmisorSettings() {
                   style={{ backgroundColor: c }} title={c} />
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-2">Es el color de los titulos, lineas y el bloque del total en tus facturas y presupuestos en PDF.</p>
+            <p className="text-xs text-gray-400 mt-2">Es el color de los títulos, lineas y el bloque del total en tus facturas y presupuestos en PDF.</p>
           </div>
         </div>
       </div>
@@ -225,7 +237,7 @@ export default function EmisorSettings() {
         {lastBackupFormatted && (
           <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
             <Clock size={14} />
-            <span>Ultimo backup: {lastBackupFormatted}</span>
+            <span>Último backup: {lastBackupFormatted}</span>
           </div>
         )}
 
@@ -271,7 +283,7 @@ export default function EmisorSettings() {
               <div className="text-xs text-gray-500">Restaura facturas desde un archivo JSON de backup</div>
             </div>
           </button>
-          <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
+          <input ref={fileRef} type="file" accept=".json" className="sr-only" onChange={handleImportFile} />
 
           {/* Restore from local */}
           {hasLocalBackup() && (
@@ -281,8 +293,8 @@ export default function EmisorSettings() {
                 <RotateCcw size={18} className="text-amber-600" />
               </div>
               <div>
-                <div className="font-medium text-gray-800 text-sm">Restaurar ultimo backup local</div>
-                <div className="text-xs text-gray-500">Recupera datos del ultimo backup automatico ({lastBackupFormatted || 'disponible'})</div>
+                <div className="font-medium text-gray-800 text-sm">Restaurar último backup local</div>
+                <div className="text-xs text-gray-500">Recupera datos del último backup automático ({lastBackupFormatted || 'disponible'})</div>
               </div>
             </button>
           )}
@@ -292,7 +304,7 @@ export default function EmisorSettings() {
         <div className="border-t pt-4">
           <div className="flex items-center gap-2 mb-3">
             <HardDrive size={16} className="text-green-600" />
-            <h3 className="text-sm font-semibold text-gray-700">Backup automatico en carpeta del disco</h3>
+            <h3 className="text-sm font-semibold text-gray-700">Backup automático en carpeta del disco</h3>
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Recomendado</span>
           </div>
           {backupFolder ? (
@@ -353,7 +365,7 @@ export default function EmisorSettings() {
         )}
 
         <p className="text-xs text-gray-400 mt-2">
-          Se crea un backup automatico tras cada cambio (guardar, borrar, duplicar o importar). El sistema nunca sobrescribe un backup con datos por uno vacio.
+          Se crea un backup automático tras cada cambio (guardar, borrar, duplicar o importar). El sistema nunca sobrescribe un backup con datos por uno vacío.
         </p>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { getAllDocuments, isPendienteCobro } from '../db';
 import { formatNumber, calcInvoiceTaxBreakdown } from '../utils/formatters';
 
 // Resumen fiscal por trimestres (borrador orientativo para los modelos 303 / 130).
-// Criterio de devengo: se agrupa por fecha de emision de la factura.
+// Criterio de devengo: se agrupa por fecha de emisión de la factura.
 export default function TaxSummary() {
   const [invoices, setInvoices] = useState([]);
   const [year, setYear] = useState(String(new Date().getFullYear()));

@@ -87,7 +87,7 @@ export default function HomePage() {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" /></div>;
   }
 
-  const vacio = data.nFacturas + data.nPresupuestos === 0;
+  const vacío = data.nFacturas + data.nPresupuestos === 0;
 
   const kpis = [
     { label: `Facturado en ${data.year}`, value: eur(data.facturadoAno), icon: TrendingUp, tone: 'text-accent bg-blue-50', sub: `${data.nFacturasReales} factura${data.nFacturasReales === 1 ? '' : 's'} este año` },
@@ -114,7 +114,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {vacio ? (
+      {vacío ? (
         <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
           <ClipboardList size={36} className="mx-auto text-gray-300 mb-3" />
           <h2 className="text-lg font-bold text-gray-800">Todavía no hay documentos</h2>
@@ -139,7 +139,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Facturacion por mes + estado de presupuestos */}
+          {/* Facturación por mes + estado de presupuestos */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
             <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-5">
               <div className="flex items-baseline justify-between mb-3">

@@ -39,7 +39,7 @@ export default function InstallPrompt() {
         </div>
         <div className="flex-1">
           <p className="text-sm font-semibold text-gray-800">Instala Presufact</p>
-          <p className="text-xs text-gray-500 mt-0.5">Tenlo como una app en tu escritorio. Funciona sin conexion.</p>
+          <p className="text-xs text-gray-500 mt-0.5">Tenlo como una app en tu escritorio. Funciona sin conexión.</p>
           <button onClick={install} className="mt-2 w-full px-3 py-1.5 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-medium transition">
             Instalar
           </button>

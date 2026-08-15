@@ -1,3 +1,4 @@
+import { setPageMeta, resetPageMeta } from '../utils/seo';
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FileText, ArrowRight, CheckCircle, AlertTriangle, ArrowLeft } from 'lucide-react';
@@ -8,9 +9,9 @@ export default function VerifactuPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Verifactu para autónomos: fechas, obligaciones y cómo te afecta (2026-2027) · Presufact';
+    setPageMeta({ title: 'Verifactu para autónomos: fechas, obligaciones y cómo te afecta (2026-2027) · Presufact', description: 'Guía clara de Verifactu: qué es, desde cuándo es obligatorio (1/1/2027 sociedades, 1/7/2027 autónomos), qué documentos quedan fuera (presupuestos y proformas) y qué hacer.', path: '/verifactu' });
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
+    return () => { resetPageMeta(); };
   }, []);
 
   const goApp = () => navigate('/demo');

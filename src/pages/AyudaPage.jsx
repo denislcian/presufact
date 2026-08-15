@@ -1,8 +1,13 @@
+import { setPageMeta, resetPageMeta } from '../utils/seo';
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FileText, ArrowLeft, LifeBuoy, Bug, ExternalLink, Send, CheckCircle, Sparkles } from 'lucide-react';
-import { isDemoMode } from '../utils/demoData';
 import { addLocalDemoTicket, isAdminDemoVisto } from '../utils/adminDemo';
+
+// Dexie y la semilla demo se cargan solo si hacen falta (esta pagina es publica
+// y no debe arrastrar la app entera al bundle de la landing)
+const isDemoMode = () => import('../utils/demoData').then(m => m.isDemoMode());
+const isOnboarded = () => import('../db').then(m => m.isOnboarded());
 
 // Canal publico alternativo al buzon. Mientras el repositorio sea privado
 // queda desactivado (null): un enlace que da 404 es peor que ninguno.
@@ -119,7 +124,7 @@ const FAQS = [
   { q: '¿Dónde están guardados mis datos?', a: 'En tu propio dispositivo (en el almacenamiento del navegador) y en las copias de seguridad que configures. No hay ninguna cuenta ni servidor: si abres la app en otro ordenador o navegador, empezará vacía. Para llevarte los datos usa Ajustes → Descargar backup, e impórtalo en el otro dispositivo.' },
   { q: 'He perdido mis facturas, ¿puedo recuperarlas?', a: 'Sí, casi siempre. La app guarda copias automáticas: si detecta la base vacía con un backup disponible te ofrecerá restaurarlo al entrar. También puedes ir a Ajustes → Historial de backups y restaurar cualquiera, o importar el archivo JSON de tu carpeta de backup (busca "presufact-backup" en la carpeta que elegiste).' },
   { q: '¿Cómo hago que las copias se suban a mi nube?', a: 'En Ajustes → Backup automático, elige como carpeta una que esté dentro de OneDrive, Google Drive o Dropbox. Tu programa de sincronización subirá cada copia a tu nube automáticamente. En el móvil, usa "Enviar backup a tu nube" (abre el menú de compartir).' },
-  { q: 'La importación de un PDF no lee bien los datos', a: 'Los PDFs generados por Presufact se reimportan con exactitud. Con PDFs de otros programas la lectura es aproximada: revisa siempre la vista previa antes de importar y corrige lo que falte en el editor. Si un formato concreto se lee mal, repórtalo (abajo) adjuntando un PDF de ejemplo sin datos sensibles.' },
+  { q: 'La importación de un PDF no lee bien los datos', a: 'Los PDFs generados por Presufact se reimportan con exactitud. Con PDFs de otros programas la lectura es aproximada: revisa siempre la vista previa antes de importar y corrige lo que falte en el editor. Si un formato concreto se lee mal, repórtalo abajo indicando el programa que generó el PDF (y, si dejas tu email, te pediremos un ejemplo sin datos sensibles).' },
   { q: '¿Puedo facturar legalmente con Presufact? ¿Y Verifactu?', a: 'Presufact genera presupuestos, proformas y borradores de factura en PDF — documentos no sujetos a Verifactu. La obligación de software certificado Verifactu para la facturación oficial entra en vigor el 1/1/2027 (sociedades) y el 1/7/2027 (autónomos): para esa facturación usa un software certificado y consúltalo con tu gestor.' },
   { q: '¿Cómo firmo un presupuesto con el cliente delante?', a: 'Abre el presupuesto → pestaña Condiciones → recuadro de firma: el cliente firma con el dedo (o subes una imagen de la firma). Al generar el PDF, la firma aparece sobre la línea de conformidad "El cliente".' },
   { q: '¿Cómo mando la factura a mi gestoría?', a: 'En Facturas, filtra el año y pulsa "ZIP gestoría": descarga todos los PDFs más un CSV con el desglose (base, IVA, IRPF) listo para Excel. También tienes el resumen por trimestres en la pestaña Impuestos.' },
@@ -129,11 +134,14 @@ const FAQS = [
 // Pagina de ayuda y soporte: FAQ practica + canal de reporte real (GitHub).
 export default function AyudaPage() {
   const navigate = useNavigate();
+  // Si ya hay empresa (o demo) en este navegador, "volver" lleva a la app, no a la landing
+  const [volverA, setVolverA] = useState('/');
+  useEffect(() => { isOnboarded().then(ok => { if (ok) setVolverA('/app'); }).catch(() => {}); }, []);
 
   useEffect(() => {
-    document.title = 'Ayuda y soporte · Presufact';
+    setPageMeta({ title: 'Ayuda y soporte · Presufact', description: 'Preguntas frecuentes de Presufact y formulario de soporte: dónde están tus datos, copias de seguridad, importación de PDF, Verifactu y firma de presupuestos.', path: '/ayuda' });
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
+    return () => { resetPageMeta(); };
   }, []);
 
   return (
@@ -153,8 +161,8 @@ export default function AyudaPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-12">
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition mb-6">
-          <ArrowLeft size={14} /> Volver a Presufact
+        <Link to={volverA} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition mb-6">
+          <ArrowLeft size={14} /> {volverA === '/app' ? 'Volver a la app' : 'Volver a Presufact'}
         </Link>
 
         <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight flex items-center gap-3">

@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /demo
+Disallow: /app
+Disallow: /facturas
+Disallow: /presupuestos
+Disallow: /clientes
+Disallow: /impuestos
+Disallow: /ajustes
 
 Sitemap: https://presufactu.vercel.app/sitemap.xml

@@ -656,13 +656,23 @@ async function buildPDF(rawInvoice) {
     y += 8;
     doc.setFontSize(7.5);
     const cLines = doc.splitTextToSize(invoice.condiciones, CONTENT_W);
-    if (y + 8 + cLines.length * 3.6 > PAGE_BOTTOM) y = newPagePlain();
+    if (y + 8 + Math.min(cLines.length, 6) * 3.6 > PAGE_BOTTOM) y = newPagePlain();
     zoneLabel('Condiciones', X_LEFT, y);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     setColor(GREY_DARK);
-    doc.text(cLines, X_LEFT, y + 4.5);
-    y += 4.5 + cLines.length * 3.6;
+    y += 4.5;
+    // Linea a linea con salto de pagina: un texto largo nunca se sale del papel
+    for (const line of cLines) {
+      if (y > PAGE_BOTTOM) {
+        y = newPagePlain();
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        setColor(GREY_DARK);
+      }
+      doc.text(line, X_LEFT, y);
+      y += 3.6;
+    }
   }
 
   // ============ CONDICIONES COMERCIALES (texto largo) ============

@@ -32,25 +32,30 @@ function mergeSpacedLabels(items) {
 
 async function extractPositionedItems(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const task = pdfjsLib.getDocument({ data: arrayBuffer });
   const pages = [];
-
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const items = [];
-    for (const item of content.items) {
-      const str = item.str.trim();
-      if (!str) continue;
-      items.push({
-        str,
-        x: item.transform[4],
-        y: item.transform[5],
-        right: item.transform[4] + (item.width || 0),
-        scale: Math.abs(item.transform[0]) || 0
-      });
+  try {
+    const pdf = await task.promise;
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const items = [];
+      for (const item of content.items) {
+        const str = item.str.trim();
+        if (!str) continue;
+        items.push({
+          str,
+          x: item.transform[4],
+          y: item.transform[5],
+          right: item.transform[4] + (item.width || 0),
+          scale: Math.abs(item.transform[0]) || 0
+        });
+      }
+      pages.push(mergeSpacedLabels(items));
     }
-    pages.push(mergeSpacedLabels(items));
+  } finally {
+    // pdf.js 6 crea un worker por documento: liberarlo (importaciones multiples)
+    try { await task.destroy(); } catch { /* ya liberado */ }
   }
   return pages;
 }

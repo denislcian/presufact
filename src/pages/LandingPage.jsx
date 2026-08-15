@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { resetPageMeta } from '../utils/seo';
 import { formatNumber } from '../utils/formatters';
 import {
   FileText, ClipboardList, ShieldCheck, Zap, FolderSync,
@@ -8,6 +10,7 @@ import {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  useEffect(() => { resetPageMeta(); window.scrollTo(0, 0); }, []);
   // La web es landing + demo: todas las llamadas a la accion entran en la demo
   const goApp = () => navigate('/demo');
 

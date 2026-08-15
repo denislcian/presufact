@@ -1,3 +1,4 @@
+import { setPageMeta, resetPageMeta } from '../utils/seo';
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FileText, ArrowRight, ArrowLeft, Check, X as XIcon } from 'lucide-react';
@@ -23,9 +24,9 @@ export default function ComparativaPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Alternativa gratis a Billin, Contasimple y FacturaDirecta sin límites · Presufact';
+    setPageMeta({ title: 'Alternativa gratis a Billin, Contasimple y FacturaDirecta sin límites · Presufact', description: 'Comparativa de los planes gratuitos de Billin, Contasimple, FacturaDirecta y la app de la AEAT frente a Presufact: presupuestos, facturas, clientes, firma del cliente, privacidad y precio.', path: '/comparativa' });
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
+    return () => { resetPageMeta(); };
   }, []);
 
   const goApp = () => navigate('/demo');

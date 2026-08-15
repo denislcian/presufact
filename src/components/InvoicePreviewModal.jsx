@@ -19,10 +19,10 @@ export default function InvoicePreviewModal({ invoice, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 overflow-y-auto p-2 sm:p-4" onClick={onClose}>
-      <div className="bg-gray-100 rounded-xl shadow-2xl my-2 sm:my-8 w-full max-w-[236mm]" onClick={e => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="preview-title" className="bg-gray-100 rounded-xl shadow-2xl my-2 sm:my-8 w-full max-w-[236mm]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-3 p-3 sm:p-4 border-b border-gray-200 sticky top-0 bg-white rounded-t-xl z-10">
           <div className="min-w-0">
-            <h2 className="text-base sm:text-lg font-bold text-gray-800 truncate">Vista previa · {titulo}</h2>
+            <h2 id="preview-title" className="text-base sm:text-lg font-bold text-gray-800 truncate">Vista previa · {titulo}</h2>
             <p className="text-[11px] text-gray-400 hidden sm:block">Es el PDF real: lo que ves es lo que se descarga.</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">

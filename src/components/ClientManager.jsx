@@ -142,7 +142,7 @@ export default function ClientManager() {
             title="Importa el CSV de clientes exportado de Billin, Contasimple, Holded o Excel">
             <Upload size={16} /> Importar CSV
           </button>
-          <input ref={csvRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleCSVFile} />
+          <input ref={csvRef} type="file" accept=".csv,.txt" className="sr-only" onChange={handleCSVFile} />
           <button onClick={() => setEditing({ ...EMPTY })}
             className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-light text-white rounded-lg transition font-medium text-sm">
             <Plus size={16} /> Nuevo cliente
@@ -236,7 +236,7 @@ export default function ClientManager() {
                     {[detail.direccion, [detail.cp, detail.ciudad].filter(Boolean).join(' '), detail.provincia].filter(Boolean).join(', ')}
                   </p>
                 </div>
-                <button onClick={() => setDetail(null)} className="p-1.5 hover:bg-gray-100 rounded-lg transition"><X size={18} /></button>
+                <button onClick={() => setDetail(null)} aria-label="Cerrar" className="p-1.5 hover:bg-gray-100 rounded-lg transition"><X size={18} /></button>
               </div>
 
               <div className="grid grid-cols-3 gap-3 my-4">
@@ -297,40 +297,40 @@ export default function ClientManager() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-800">{editing.id ? 'Editar cliente' : 'Nuevo cliente'}</h2>
-              <button onClick={() => setEditing(null)} className="p-1.5 hover:bg-gray-100 rounded-lg transition"><X size={18} /></button>
+              <button onClick={() => setEditing(null)} aria-label="Cerrar" className="p-1.5 hover:bg-gray-100 rounded-lg transition"><X size={18} /></button>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className={labelClass}>Nombre / Razón social *</label>
-                <input className={inputClass} value={editing.nombre} onChange={e => setEditing(p => ({ ...p, nombre: e.target.value }))} autoFocus />
+                <label htmlFor="c-nombre-razon-social" className={labelClass}>Nombre / Razón social *</label>
+                <input id="c-nombre-razon-social" className={inputClass} value={editing.nombre} onChange={e => setEditing(p => ({ ...p, nombre: e.target.value }))} autoFocus />
               </div>
               <div>
-                <label className={labelClass}>NIF</label>
-                <input className={inputClass} value={editing.nif} onChange={e => setEditing(p => ({ ...p, nif: e.target.value }))} />
+                <label htmlFor="c-nif" className={labelClass}>NIF</label>
+                <input id="c-nif" className={inputClass} value={editing.nif} onChange={e => setEditing(p => ({ ...p, nif: e.target.value }))} />
               </div>
               <div>
-                <label className={labelClass}>Teléfono</label>
-                <input className={inputClass} value={editing.telefono} onChange={e => setEditing(p => ({ ...p, telefono: e.target.value }))} />
+                <label htmlFor="c-telefono" className={labelClass}>Teléfono</label>
+                <input id="c-telefono" className={inputClass} value={editing.telefono} onChange={e => setEditing(p => ({ ...p, telefono: e.target.value }))} />
               </div>
               <div className="col-span-2">
-                <label className={labelClass}>Email</label>
-                <input className={inputClass} type="email" value={editing.email} onChange={e => setEditing(p => ({ ...p, email: e.target.value }))} />
+                <label htmlFor="c-email" className={labelClass}>Email</label>
+                <input id="c-email" className={inputClass} type="email" value={editing.email} onChange={e => setEditing(p => ({ ...p, email: e.target.value }))} />
               </div>
               <div className="col-span-2">
-                <label className={labelClass}>Dirección</label>
-                <input className={inputClass} value={editing.direccion} onChange={e => setEditing(p => ({ ...p, direccion: e.target.value }))} />
+                <label htmlFor="c-direccion" className={labelClass}>Dirección</label>
+                <input id="c-direccion" className={inputClass} value={editing.direccion} onChange={e => setEditing(p => ({ ...p, direccion: e.target.value }))} />
               </div>
               <div>
-                <label className={labelClass}>CP</label>
-                <input className={inputClass} value={editing.cp} onChange={e => setEditing(p => ({ ...p, cp: e.target.value }))} />
+                <label htmlFor="c-cp" className={labelClass}>CP</label>
+                <input id="c-cp" className={inputClass} value={editing.cp} onChange={e => setEditing(p => ({ ...p, cp: e.target.value }))} />
               </div>
               <div>
-                <label className={labelClass}>Ciudad</label>
-                <input className={inputClass} value={editing.ciudad} onChange={e => setEditing(p => ({ ...p, ciudad: e.target.value }))} />
+                <label htmlFor="c-ciudad" className={labelClass}>Ciudad</label>
+                <input id="c-ciudad" className={inputClass} value={editing.ciudad} onChange={e => setEditing(p => ({ ...p, ciudad: e.target.value }))} />
               </div>
               <div className="col-span-2">
-                <label className={labelClass}>Provincia</label>
-                <input className={inputClass} value={editing.provincia} onChange={e => setEditing(p => ({ ...p, provincia: e.target.value }))} />
+                <label htmlFor="c-provincia" className={labelClass}>Provincia</label>
+                <input id="c-provincia" className={inputClass} value={editing.provincia} onChange={e => setEditing(p => ({ ...p, provincia: e.target.value }))} />
               </div>
             </div>
             <div className="flex gap-2 justify-end mt-5">

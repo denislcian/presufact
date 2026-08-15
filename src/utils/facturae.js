@@ -58,7 +58,8 @@ export function generateFacturaeXML(invoice) {
   const numero = String(invoice.invoiceNumber || 'SN');
   const fecha = invoice.date || new Date().toISOString().split('T')[0];
 
-  const taxesOutputs = tax.porTipo.filter(() => !tax.isISP).map(g => `
+  const gruposIva = tax.isISP ? [{ tipo: 0, base: tax.base, cuota: 0, re: 0, reRate: 0 }] : tax.porTipo;
+  const taxesOutputs = gruposIva.map(g => `
         <Tax>
           <TaxTypeCode>01</TaxTypeCode>
           <TaxRate>${n2(g.tipo)}</TaxRate>
@@ -103,8 +104,6 @@ export function generateFacturaeXML(invoice) {
         </InvoiceLine>`;
   }).join('');
 
-  const totalFactura = tax.base + tax.ivaAmount + tax.reAmount; // antes de retencion
-
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <fe:Facturae xmlns:fe="http://www.facturae.es/Facturae/2014/v3.2.1/Facturae" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <FileHeader>
@@ -144,7 +143,7 @@ export function generateFacturaeXML(invoice) {
         <TotalGrossAmountBeforeTaxes>${n2(tax.base)}</TotalGrossAmountBeforeTaxes>
         <TotalTaxOutputs>${n2(tax.ivaAmount + tax.reAmount)}</TotalTaxOutputs>
         <TotalTaxesWithheld>${n2(tax.hasIRPF ? tax.irpfAmount : 0)}</TotalTaxesWithheld>
-        <InvoiceTotal>${n2(totalFactura)}</InvoiceTotal>
+        <InvoiceTotal>${n2(tax.total)}</InvoiceTotal>
         <TotalOutstandingAmount>${n2(tax.total)}</TotalOutstandingAmount>
         <TotalExecutableAmount>${n2(tax.total)}</TotalExecutableAmount>
       </InvoiceTotals>

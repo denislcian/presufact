@@ -111,12 +111,12 @@ export default function SignaturePad({ value, onChange, label = 'Firma' }) {
         </span>
         <div className="flex items-center gap-3">
           <button type="button" onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-accent transition" title="Subir una imagen de la firma (PNG o JPG)">
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-accent transition" title="Subir una imagen de la firma (PNG o JPG)">
             <ImagePlus size={12} /> Subir imagen
           </button>
-          <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleImageFile} />
+          <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="sr-only" onChange={handleImageFile} />
           <button type="button" onClick={clear}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition">
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition">
             <Eraser size={12} /> Borrar
           </button>
         </div>

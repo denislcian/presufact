@@ -119,6 +119,9 @@ export default async function handler(req, res) {
       if (!t) return res.status(404).json({ error: 'Ticket no encontrado' });
       t.estado = estado;
       t.actualizado = new Date().toISOString();
+      // Privacidad: al resolver se elimina el dato personal (email); el texto se
+      // conserva hasta que el admin borre el ticket
+      if (estado === 'resuelto') t.email = '';
       await writeAll(tickets);
       return res.status(200).json({ ok: true });
     }

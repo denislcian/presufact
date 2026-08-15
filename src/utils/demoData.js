@@ -31,14 +31,14 @@ const CLIENTES = [
 const hoy = () => new Date().toISOString().split('T')[0];
 const diasAtras = (n) => new Date(Date.now() - n * 86400000).toISOString().split('T')[0];
 
-const CONDICIONES = '- Validez: Este presupuesto tiene una validez de 30 dias desde su fecha de emision.\n\n- Forma de pago: 40% a la aceptacion, 60% a la finalizacion de los trabajos.\n\n- Los precios indicados no incluyen IVA salvo que se especifique lo contrario.\n\n- Aceptacion: La firma o aceptacion de este documento supone la conformidad con todas las condiciones aqui descritas.';
+const CONDICIONES = '- Validez: Este presupuesto tiene una validez de 30 días desde su fecha de emisión.\n\n- Forma de pago: 40% a la aceptación, 60% a la finalización de los trabajos.\n\n- Los precios indicados no incluyen IVA salvo que se especifique lo contrario.\n\n- Aceptación: La firma o aceptación de este documento supone la conformidad con todas las condiciones aquí descritas.';
 
 export async function seedDemoData() {
   const year = new Date().getFullYear();
   const f = (n, y = year) => `${y}-${String(n).padStart(4, '0')}`;
   const base = (cliIdx) => ({
     documentType: 'Factura', emisor: { ...EMISOR_DEMO }, cliente: { ...CLIENTES[cliIdx] },
-    formaPago: 'TRANSFERENCIA BANCARIA A LA RECEPCION DE LA FACTURA',
+    formaPago: 'TRANSFERENCIA BANCARIA A LA RECEPCIÓN DE LA FACTURA',
     deducciones: [], observaciones: `Número de cuenta: ${EMISOR_DEMO.iban}`, vencimientos: []
   });
 
@@ -116,7 +116,7 @@ export async function seedDemoData() {
   // ---- PRESUPUESTOS ----
   const basePresu = (cliIdx) => ({
     documentType: 'Presupuesto', emisor: { ...EMISOR_DEMO }, cliente: { ...CLIENTES[cliIdx] },
-    deducciones: [], observaciones: '', vencimientos: [], validez: '30 dias',
+    deducciones: [], observaciones: '', vencimientos: [], validez: '30 días',
     condicionesComerciales: CONDICIONES
   });
   const p = (n) => `P-${year}-${String(n).padStart(3, '0')}`;
@@ -151,7 +151,7 @@ export async function seedDemoData() {
     lineas: [{ articulo: 'Cerramiento', descripcion: 'Cerramiento de aluminio con rotura de puente térmico', cantidad: '12', precioUd: '385', unidad: 'm2' }],
     iva: { tipo: 21 } });
 
-  // Firmado tambien: pequeno trabajo de fontaneria para un particular
+  // Firmado también: pequeno trabajo de fontaneria para un particular
   await saveDocument('presupuesto', { ...basePresu(6), invoiceNumber: p(5), date: diasAtras(3), estado: 'aceptado',
     descripcionObra: 'Sustitución de caldera y radiadores del salón.',
     plazoEjecucion: '2 días', firmaCliente: FIRMA_DEMO,
@@ -181,7 +181,7 @@ export async function isDemoMode() {
 }
 
 // Borra TODO (documentos, clientes, empresas) y sale del modo demo.
-// Tambien desvincula la carpeta de copias: asi la siembra de la demo no pisa
+// También desvincula la carpeta de copias: asi la siembra de la demo no pisa
 // el backup real del usuario en su disco/nube.
 export async function clearDemoData() {
   await db.invoices.clear();
@@ -190,7 +190,9 @@ export async function clearDemoData() {
   await db.settings.delete('emisor');
   await db.settings.delete('emisores');
   await db.settings.delete('demoMode');
-  await db.settings.delete('backupDirHandle');
+  // Desvincular la carpeta de copias (ajuste + cache en memoria de backup.js)
+  const { clearBackupFolder } = await import('./backup');
+  await clearBackupFolder();
   Object.keys(localStorage).filter(k => k.startsWith('presufact-backup')).forEach(k => localStorage.removeItem(k));
   clearAdminDemo();
 }

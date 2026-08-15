@@ -98,7 +98,7 @@ export default function ImportInvoice({ onClose, defaultDocType = 'factura' }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">Importar PDF</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition"><X size={20} /></button>
+          <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-gray-100 rounded-lg transition"><X size={20} /></button>
         </div>
 
         <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 70px)' }}>
@@ -107,10 +107,10 @@ export default function ImportInvoice({ onClose, defaultDocType = 'factura' }) {
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-accent hover:bg-blue-50/50 transition cursor-pointer"
                 onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={() => fileInputRef.current?.click()}>
                 <Upload size={48} className="mx-auto text-gray-400 mb-4" />
-                <p className="text-lg font-medium text-gray-700 mb-1">Arrastra PDFs aqui o haz clic para seleccionar</p>
-                <p className="text-sm text-gray-500">Se detectara automaticamente si es factura o presupuesto</p>
+                <p className="text-lg font-medium text-gray-700 mb-1">Arrastra PDFs aquí o haz clic para seleccionar</p>
+                <p className="text-sm text-gray-500">Se detectará automáticamente si es factura o presupuesto</p>
               </div>
-              <input ref={fileInputRef} type="file" accept=".pdf" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
+              <input ref={fileInputRef} type="file" accept=".pdf" multiple className="sr-only" onChange={e => handleFiles(e.target.files)} />
               {error && <div className="mt-4 flex items-center gap-2 text-red-600 text-sm"><AlertCircle size={16} /> {error}</div>}
             </div>
           )}
@@ -125,7 +125,7 @@ export default function ImportInvoice({ onClose, defaultDocType = 'factura' }) {
           {status === 'preview' && (
             <div className="space-y-4">
               <p className="text-sm text-gray-500 mb-4">
-                Se han leido {results.length} archivo(s). Revisa que el tipo de documento sea correcto antes de importar.
+                Se han leído {results.length} archivo(s). Revisa que el tipo de documento sea correcto antes de importar.
               </p>
 
               {results.map((result, idx) => (
@@ -163,10 +163,10 @@ export default function ImportInvoice({ onClose, defaultDocType = 'factura' }) {
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div><span className="text-gray-500">Numero:</span><span className="ml-2 font-mono">{result.invoice.invoiceNumber || '(no detectado)'}</span></div>
+                        <div><span className="text-gray-500">Número:</span><span className="ml-2 font-mono">{result.invoice.invoiceNumber || '(no detectado)'}</span></div>
                         <div><span className="text-gray-500">Fecha:</span><span className="ml-2">{result.invoice.date}</span></div>
                         <div className="col-span-2"><span className="text-gray-500">Cliente:</span><span className="ml-2 font-medium">{result.invoice.cliente.nombre || '(no detectado)'}</span></div>
-                        <div className="col-span-2"><span className="text-gray-500">Lineas:</span><span className="ml-2">{result.invoice.lineas.filter(l => l.descripcion).length} concepto(s) detectados</span></div>
+                        <div className="col-span-2"><span className="text-gray-500">Líneas:</span><span className="ml-2">{result.invoice.lineas.filter(l => l.descripcion).length} concepto(s) detectados</span></div>
                       </div>
 
                       {result.invoice.lineas.filter(l => l.descripcion).length > 0 && (
@@ -185,7 +185,7 @@ export default function ImportInvoice({ onClose, defaultDocType = 'factura' }) {
 
                       {result.rawText && (
                         <details className="text-xs">
-                          <summary className="cursor-pointer text-gray-400 hover:text-gray-600">Ver texto extraido del PDF</summary>
+                          <summary className="cursor-pointer text-gray-400 hover:text-gray-600">Ver texto extraído del PDF</summary>
                           <pre className="mt-2 p-2 bg-gray-100 rounded text-[10px] max-h-40 overflow-auto whitespace-pre-wrap">{result.rawText}</pre>
                         </details>
                       )}

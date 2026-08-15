@@ -5,15 +5,27 @@ const LS_DATE_KEY = 'presufact-backup-date';
 const LS_HISTORY_PREFIX = 'presufact-backup-h'; // h1..h5 rotating history
 const HISTORY_SLOTS = 5;
 
+// Cada documento guarda una copia del emisor con el logo en base64: en el
+// backup sobra (el logo viaja una vez en settings.emisor y, al no llevar la
+// clave, el PDF cae al logo de ajustes). Con logos de ~1 MB esto evita
+// reventar la cuota de localStorage con solo 2-3 documentos.
+function sinLogo(doc) {
+  if (!doc?.emisor || !('logo' in doc.emisor)) return doc;
+  const { logo: _logo, ...emisor } = doc.emisor;
+  return { ...doc, emisor };
+}
+
 export async function exportAllData() {
-  const invoices = await db.invoices.toArray();
-  const presupuestos = await db.presupuestos.toArray();
+  const invoices = (await db.invoices.toArray()).map(sinLogo);
+  const presupuestos = (await db.presupuestos.toArray()).map(sinLogo);
+  const clientes = await db.clientes.toArray().catch(() => []);
   const settings = await db.settings.toArray();
   return {
-    version: 3,
+    version: 4,
     exportDate: new Date().toISOString(),
     invoices,
     presupuestos,
+    clientes,
     settings
   };
 }
@@ -229,6 +241,18 @@ export async function importBackup(file) {
       if (existing) { skipped++; continue; }
       await db.presupuestos.add(presData);
       imported++;
+    }
+  }
+
+  // Libreta de clientes (backups v4+); los v3 la reconstruyen desde los documentos
+  if (data.clientes && Array.isArray(data.clientes)) {
+    for (const c of data.clientes) {
+      const { id, ...cData } = c;
+      const nombre = (cData.nombre || '').trim();
+      if (!nombre) continue;
+      const existing = await db.clientes.where('nombre').equals(nombre).first();
+      if (existing) continue;
+      await db.clientes.add({ ...cData, nombre });
     }
   }
 

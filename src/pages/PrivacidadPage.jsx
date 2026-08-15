@@ -1,3 +1,4 @@
+import { setPageMeta, resetPageMeta } from '../utils/seo';
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FileText, ArrowLeft, ShieldCheck } from 'lucide-react';
@@ -9,9 +10,9 @@ export default function PrivacidadPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Privacidad y seguridad · Presufact';
+    setPageMeta({ title: 'Privacidad y seguridad · Presufact', description: 'Presufact no recoge tus datos: presupuestos, facturas y clientes se guardan solo en tu dispositivo. Sin cuentas, sin cookies de rastreo, sin analítica. CSP estricta y HTTPS.', path: '/privacidad' });
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
+    return () => { resetPageMeta(); };
   }, []);
 
   return (
@@ -100,8 +101,9 @@ export default function PrivacidadPage() {
               Si usas el formulario de soporte de la <Link to="/ayuda" className="text-accent underline hover:no-underline">página de ayuda</Link>,
               lo que escribas (asunto, mensaje y tu email si decides darlo) se envía cifrado a nuestro buzón de
               soporte para poder atenderte. Es información que tú nos das voluntariamente, se usa solo para
-              responderte, no se comparte con nadie y se elimina al resolver el ticket. Por eso el formulario te
-              pide no incluir datos reales de tus clientes.
+              responderte y no se comparte con nadie: tu email se borra en cuanto el ticket se marca como resuelto y
+              el texto del ticket se elimina al cerrarlo definitivamente. Por eso el formulario te pide no incluir
+              datos reales de tus clientes.
             </p>
           </section>
 

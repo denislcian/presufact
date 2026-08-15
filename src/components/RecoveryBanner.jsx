@@ -56,7 +56,7 @@ export default function RecoveryBanner() {
             <div className="flex items-center gap-3">
               <AlertTriangle size={20} className="text-amber-600 flex-shrink-0" />
               <div className="text-sm">
-                <span className="font-semibold text-amber-800">La base de datos esta vacia, pero hay un backup disponible</span>
+                <span className="font-semibold text-amber-800">La base de datos está vacía, pero hay un backup disponible</span>
                 <span className="text-amber-700 ml-2">
                   ({best.count} documentos del {best.date ? new Date(best.date).toLocaleString('es-ES') : 'desconocido'})
                 </span>

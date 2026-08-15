@@ -1,3 +1,4 @@
+import { setPageMeta, resetPageMeta } from '../utils/seo';
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FileText, ArrowRight, Check, ArrowLeft } from 'lucide-react';
@@ -23,7 +24,7 @@ const CONTENT = {
       { q: '¿Sirve para autónomos en España?', a: 'Está pensado para eso: IVA español, retención de IRPF (7 %/15 %), recargo de equivalencia, inversión del sujeto pasivo, formato de números español y resumen trimestral para el 303/130.' },
       { q: '¿Y Verifactu? ¿Estas facturas valen?', a: 'Presufact genera las facturas en PDF como borrador/proforma, documentos no sujetos a Verifactu. Para la facturación oficial, la obligación de software certificado entra en vigor el 1/1/2027 (sociedades) y el 1/7/2027 (autónomos): consúltalo con tu gestor.' },
     ],
-    cta: 'Crear mi primera factura',
+    cta: 'Probar la demo',
     related: { to: '/generador-de-presupuestos', label: 'También: generador de presupuestos gratis' },
   },
   presupuestos: {
@@ -43,7 +44,7 @@ const CONTENT = {
       { q: '¿Los presupuestos están sujetos a Verifactu?', a: 'No. Los presupuestos, proformas y borradores no son facturas y quedan fuera del reglamento Verifactu. Puedes leer nuestra guía completa sobre Verifactu para el detalle.' },
       { q: '¿Qué unidades puedo usar en las partidas?', a: 'm², metros lineales, unidades, horas y packs — pensado para obra, reformas, servicios y trabajos por horas.' },
     ],
-    cta: 'Crear mi primer presupuesto',
+    cta: 'Ver la demo con datos de ejemplo',
     related: { to: '/generador-de-facturas', label: 'También: generador de facturas gratis' },
   },
 };
@@ -75,19 +76,21 @@ for (const [key, o] of Object.entries(OFICIOS)) {
       { q: `¿Puedo desglosar el ${o.kw} por partidas?`, a: `Sí: cada partida lleva concepto, cantidad (${o.unidades}), precio unitario, descuento opcional y su importe. Los totales, el IVA y la retención de IRPF se calculan solos.` },
       { q: '¿Los presupuestos están sujetos a Verifactu?', a: 'No. Los presupuestos no son facturas y quedan fuera del reglamento Verifactu.' },
     ],
-    cta: 'Crear mi presupuesto gratis',
+    cta: 'Ver la demo con datos de ejemplo',
     related: { to: '/generador-de-presupuestos', label: 'Generador de presupuestos gratis' },
   };
 }
+
+const RUTAS = { facturas: '/generador-de-facturas', presupuestos: '/generador-de-presupuestos', obra: '/presupuesto-de-obra', reforma: '/presupuesto-reforma', fontaneria: '/presupuesto-fontaneria', electricista: '/presupuesto-electricista', pintura: '/presupuesto-pintura' };
 
 export default function SeoLanding({ variant = 'facturas' }) {
   const navigate = useNavigate();
   const c = CONTENT[variant];
 
   useEffect(() => {
-    document.title = c.title;
+    setPageMeta({ title: c.title, description: c.intro, path: RUTAS[variant] || '/' });
     window.scrollTo(0, 0);
-    return () => { document.title = 'Presufact — Presupuestos y facturas en PDF gratis, sin registro'; };
+    return () => { resetPageMeta(); };
   }, [variant]);
 
   const goApp = () => navigate('/demo');

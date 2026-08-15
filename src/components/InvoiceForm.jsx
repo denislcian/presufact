@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { setDirty, MSG_SIN_GUARDAR } from '../utils/dirty';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Trash2, Save, Eye, ArrowLeft, Copy } from 'lucide-react';
 import { getDefaultDocument, getNextNumber, saveDocument, getDocument, getEmisorSettings, getAllDocuments, getClientes, DOC_TYPES } from '../db';
@@ -23,6 +24,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
   const [savedJson, setSavedJson] = useState('');
   const saveRef = useRef(null);
   const dirtyRef = useRef(false);
+  const savingRef = useRef(false); // guard contra doble guardado (Ctrl+S repetido, doble clic)
 
   useEffect(() => {
     async function load() {
@@ -72,6 +74,9 @@ export default function InvoiceForm({ docType = 'factura' }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, docType]);
 
+  // Al salir del editor, el flag global de cambios sin guardar se limpia
+  useEffect(() => () => setDirty(false), []);
+
   // Warn before closing the tab with unsaved changes
   useEffect(() => {
     const onBeforeUnload = (e) => {
@@ -86,6 +91,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
     const onKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
+        if (e.repeat) return;
         saveRef.current?.();
       }
     };
@@ -97,9 +103,10 @@ export default function InvoiceForm({ docType = 'factura' }) {
 
   const dirty = JSON.stringify(invoice) !== savedJson;
   dirtyRef.current = dirty;
+  setDirty(dirty);
 
   const handleBack = () => {
-    if (dirty && !window.confirm('Hay cambios sin guardar. ¿Salir igualmente?')) return;
+    if (dirty && !window.confirm(MSG_SIN_GUARDAR)) return;
     navigate(config.route);
   };
 
@@ -150,6 +157,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
   };
 
   const handleSave = async () => {
+    if (savingRef.current) return;
     // Validation
     if (!invoice.cliente?.nombre?.trim()) {
       setValidationError('Falta el nombre del cliente');
@@ -163,6 +171,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
       return;
     }
     setValidationError('');
+    savingRef.current = true;
     setSaving(true);
     let savedInvoice = null;
     try {
@@ -171,11 +180,12 @@ export default function InvoiceForm({ docType = 'factura' }) {
       setSavedJson(JSON.stringify(savedInvoice));
       if (!id) navigate(`${config.route}/editar/${savedId}`, { replace: true });
       else setInvoice(savedInvoice);
-      toast(`${config.label} ${savedInvoice.invoiceNumber} guardado — el PDF se está descargando`);
+      toast(`${config.label} ${savedInvoice.invoiceNumber} ${docType === 'factura' ? 'guardada' : 'guardado'} — el PDF se está descargando`);
       autoBackup();
     } catch (e) {
       console.error(e);
       setValidationError('No se pudo guardar el documento: ' + (e?.message || 'error desconocido') + '. Tus cambios siguen en pantalla; prueba de nuevo o descarga un backup desde Ajustes.');
+      savingRef.current = false;
       setSaving(false);
       return;
     }
@@ -186,6 +196,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
       console.error(e);
       setValidationError('Documento guardado, pero no se pudo generar el PDF: ' + (e?.message || 'error desconocido'));
     }
+    savingRef.current = false;
     setSaving(false);
   };
   saveRef.current = handleSave;
@@ -230,7 +241,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <button onClick={handleBack} className="p-2 hover:bg-gray-200 rounded-lg transition">
+          <button onClick={handleBack} aria-label="Volver" title="Volver" className="p-2 hover:bg-gray-200 rounded-lg transition">
             <ArrowLeft size={20} />
           </button>
           <h1 className="text-2xl font-bold text-gray-800">
@@ -262,10 +273,10 @@ export default function InvoiceForm({ docType = 'factura' }) {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-xl">
+      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-xl overflow-x-auto">
         {tabs.map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === tab.key ? 'bg-white shadow text-accent' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`sm:flex-1 whitespace-nowrap px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === tab.key ? 'bg-white shadow text-accent' : 'text-gray-500 hover:text-gray-700'}`}>
             {tab.label}
           </button>
         ))}
@@ -276,22 +287,22 @@ export default function InvoiceForm({ docType = 'factura' }) {
         {activeTab === 'general' && (
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-gray-700 border-b pb-2">Datos del Documento</h2>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className={labelClass}>Tipo Documento</label>
-                <input className={inputClass} value={invoice.documentType} onChange={e => updateField('documentType', e.target.value)} />
+                <label htmlFor="f-tipo-documento" className={labelClass}>Tipo Documento</label>
+                <input id="f-tipo-documento" className={inputClass} value={invoice.documentType} onChange={e => updateField('documentType', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Número</label>
-                <input className={inputClass} value={invoice.invoiceNumber} onChange={e => updateField('invoiceNumber', e.target.value)} />
+                <label htmlFor="f-numero" className={labelClass}>Número</label>
+                <input id="f-numero" className={inputClass} value={invoice.invoiceNumber} onChange={e => updateField('invoiceNumber', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Página</label>
-                <input className={inputClass} value={invoice.page} onChange={e => updateField('page', e.target.value)} />
+                <label htmlFor="f-pagina" className={labelClass}>Página</label>
+                <input id="f-pagina" className={inputClass} value={invoice.page} onChange={e => updateField('page', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Fecha</label>
-                <input type="date" className={inputClass} value={invoice.date} onChange={e => updateField('date', e.target.value)} />
+                <label htmlFor="f-fecha" className={labelClass}>Fecha</label>
+                <input id="f-fecha" type="date" className={inputClass} value={invoice.date} onChange={e => updateField('date', e.target.value)} />
               </div>
             </div>
 
@@ -311,57 +322,57 @@ export default function InvoiceForm({ docType = 'factura' }) {
             )}
 
             <h2 className="text-lg font-semibold text-gray-700 border-b pb-2 mt-6">Datos del Emisor</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Nombre / Razón Social</label>
-                <input className={inputClass} value={invoice.emisor.nombre} onChange={e => updateField('emisor.nombre', e.target.value)} />
+                <label htmlFor="f-nombre-razon-social" className={labelClass}>Nombre / Razón Social</label>
+                <input id="f-nombre-razon-social" className={inputClass} value={invoice.emisor.nombre} onChange={e => updateField('emisor.nombre', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>NIF</label>
-                <input className={inputClass} value={invoice.emisor.nif} onChange={e => updateField('emisor.nif', e.target.value)} />
+                <label htmlFor="f-nif" className={labelClass}>NIF</label>
+                <input id="f-nif" className={inputClass} value={invoice.emisor.nif} onChange={e => updateField('emisor.nif', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Subtítulo</label>
-                <input className={inputClass} value={invoice.emisor.subtitulo} onChange={e => updateField('emisor.subtitulo', e.target.value)} />
+                <label htmlFor="f-subtitulo" className={labelClass}>Subtítulo</label>
+                <input id="f-subtitulo" className={inputClass} value={invoice.emisor.subtitulo} onChange={e => updateField('emisor.subtitulo', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Web</label>
-                <input className={inputClass} value={invoice.emisor.web} onChange={e => updateField('emisor.web', e.target.value)} />
+                <label htmlFor="f-web" className={labelClass}>Web</label>
+                <input id="f-web" className={inputClass} value={invoice.emisor.web} onChange={e => updateField('emisor.web', e.target.value)} />
               </div>
               <div className="col-span-2">
-                <label className={labelClass}>Dirección</label>
-                <input className={inputClass} value={invoice.emisor.direccion} onChange={e => updateField('emisor.direccion', e.target.value)} />
+                <label htmlFor="f-direccion" className={labelClass}>Dirección</label>
+                <input id="f-direccion" className={inputClass} value={invoice.emisor.direccion} onChange={e => updateField('emisor.direccion', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>CP</label>
-                <input className={inputClass} value={invoice.emisor.cp} onChange={e => updateField('emisor.cp', e.target.value)} />
+                <label htmlFor="f-cp" className={labelClass}>CP</label>
+                <input id="f-cp" className={inputClass} value={invoice.emisor.cp} onChange={e => updateField('emisor.cp', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Ciudad</label>
-                <input className={inputClass} value={invoice.emisor.ciudad} onChange={e => updateField('emisor.ciudad', e.target.value)} />
+                <label htmlFor="f-ciudad" className={labelClass}>Ciudad</label>
+                <input id="f-ciudad" className={inputClass} value={invoice.emisor.ciudad} onChange={e => updateField('emisor.ciudad', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Provincia</label>
-                <input className={inputClass} value={invoice.emisor.provincia} onChange={e => updateField('emisor.provincia', e.target.value)} />
+                <label htmlFor="f-provincia" className={labelClass}>Provincia</label>
+                <input id="f-provincia" className={inputClass} value={invoice.emisor.provincia} onChange={e => updateField('emisor.provincia', e.target.value)} />
               </div>
             </div>
 
             {docType === 'factura' && (
               <div>
-                <label className={labelClass}>Forma de Pago</label>
-                <input className={inputClass} value={invoice.formaPago || ''} onChange={e => updateField('formaPago', e.target.value)} />
+                <label htmlFor="f-forma-de-pago" className={labelClass}>Forma de Pago</label>
+                <input id="f-forma-de-pago" className={inputClass} value={invoice.formaPago || ''} onChange={e => updateField('formaPago', e.target.value)} />
               </div>
             )}
             <div>
-              <label className={labelClass}>{docType === 'presupuesto' ? 'Descripcion de la Obra' : 'Descripcion del Trabajo (cabecera)'}</label>
+              <label className={labelClass}>{docType === 'presupuesto' ? 'Descripción de la Obra' : 'Descripción del Trabajo (cabecera)'}</label>
               <textarea className={inputClass + ' h-20'}
                 value={docType === 'presupuesto' ? (invoice.descripcionObra || '') : (invoice.descripcionTrabajo || '')}
                 onChange={e => updateField(docType === 'presupuesto' ? 'descripcionObra' : 'descripcionTrabajo', e.target.value)}
                 placeholder={docType === 'presupuesto' ? 'Ej: PRESUPUESTO PARA OBRA CHALET CABUEÑES' : 'Ej: TRABAJOS REALIZADOS EN SU OBRA CHALET CABUEÑES'} />
             </div>
             <div>
-              <label className={labelClass}>Observaciones</label>
-              <textarea className={inputClass + ' h-20'} value={invoice.observaciones || ''} onChange={e => updateField('observaciones', e.target.value)}
+              <label htmlFor="f-observaciones" className={labelClass}>Observaciones</label>
+              <textarea id="f-observaciones" className={inputClass + ' h-20'} value={invoice.observaciones || ''} onChange={e => updateField('observaciones', e.target.value)}
                 placeholder={docType === 'presupuesto' ? 'Notas adicionales sobre el presupuesto' : 'Ej: TRANSFERENCIA BANCARIA A FECHA DE FACTURA&#10;ES02 0049 3586 1921 1403 5991'} />
             </div>
           </div>
@@ -396,8 +407,8 @@ export default function InvoiceForm({ docType = 'factura' }) {
             <h2 className="text-lg font-semibold text-gray-700 border-b pb-2">Datos del Cliente</h2>
             {knownClients.length > 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                <label className={labelClass}>Clientes anteriores</label>
-                <select className={inputClass + ' mt-1'} value=""
+                <label htmlFor="f-clientes-anteriores" className={labelClass}>Clientes anteriores</label>
+                <select id="f-clientes-anteriores" className={inputClass + ' mt-1'} value=""
                   onChange={e => { if (e.target.value) handleClientSelect(e.target.value); }}>
                   <option value="">Seleccionar cliente guardado...</option>
                   {knownClients.map((c, i) => (
@@ -406,38 +417,38 @@ export default function InvoiceForm({ docType = 'factura' }) {
                 </select>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className={labelClass}>Nombre / Razon Social</label>
-                <input className={inputClass} value={invoice.cliente.nombre} onChange={e => updateField('cliente.nombre', e.target.value)}
+                <label htmlFor="f-nombre-razon-social-2" className={labelClass}>Nombre / Razón Social</label>
+                <input id="f-nombre-razon-social-2" className={inputClass} value={invoice.cliente.nombre} onChange={e => updateField('cliente.nombre', e.target.value)}
                   placeholder="Ej: CONSTRUCCIONES COVAFRE, S.L." list="clientes-list" />
                 <datalist id="clientes-list">
                   {knownClients.map((c, i) => <option key={i} value={c.nombre} />)}
                 </datalist>
               </div>
               <div>
-                <label className={labelClass}>NIF</label>
-                <input className={inputClass} value={invoice.cliente.nif} onChange={e => updateField('cliente.nif', e.target.value)} />
+                <label htmlFor="f-nif-2" className={labelClass}>NIF</label>
+                <input id="f-nif-2" className={inputClass} value={invoice.cliente.nif} onChange={e => updateField('cliente.nif', e.target.value)} />
               </div>
               <div className="col-span-2">
-                <label className={labelClass}>Dirección</label>
-                <input className={inputClass} value={invoice.cliente.direccion} onChange={e => updateField('cliente.direccion', e.target.value)} />
+                <label htmlFor="f-direccion-2" className={labelClass}>Dirección</label>
+                <input id="f-direccion-2" className={inputClass} value={invoice.cliente.direccion} onChange={e => updateField('cliente.direccion', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>CP</label>
-                <input className={inputClass} value={invoice.cliente.cp} onChange={e => updateField('cliente.cp', e.target.value)} />
+                <label htmlFor="f-cp-2" className={labelClass}>CP</label>
+                <input id="f-cp-2" className={inputClass} value={invoice.cliente.cp} onChange={e => updateField('cliente.cp', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Ciudad</label>
-                <input className={inputClass} value={invoice.cliente.ciudad} onChange={e => updateField('cliente.ciudad', e.target.value)} />
+                <label htmlFor="f-ciudad-2" className={labelClass}>Ciudad</label>
+                <input id="f-ciudad-2" className={inputClass} value={invoice.cliente.ciudad} onChange={e => updateField('cliente.ciudad', e.target.value)} />
               </div>
               <div>
-                <label className={labelClass}>Provincia</label>
-                <input className={inputClass} value={invoice.cliente.provincia} onChange={e => updateField('cliente.provincia', e.target.value)} />
+                <label htmlFor="f-provincia-2" className={labelClass}>Provincia</label>
+                <input id="f-provincia-2" className={inputClass} value={invoice.cliente.provincia} onChange={e => updateField('cliente.provincia', e.target.value)} />
               </div>
               <div className="col-span-2">
-                <label className={labelClass}>Email</label>
-                <input className={inputClass} type="email" value={invoice.cliente.email || ''}
+                <label htmlFor="f-email" className={labelClass}>Email</label>
+                <input id="f-email" className={inputClass} type="email" value={invoice.cliente.email || ''}
                   onChange={e => updateField('cliente.email', e.target.value)}
                   placeholder="cliente@empresa.es" />
                 <p className="text-xs text-gray-400 mt-1">Con email, el botón "Enviar por email" abre tu correo ya dirigido a este cliente</p>
@@ -451,7 +462,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
         {activeTab === 'lineas' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-700">Líneas de Factura</h2>
+              <h2 className="text-lg font-semibold text-gray-700">Líneas</h2>
               <button onClick={addLinea} className="flex items-center gap-1 px-3 py-1.5 bg-accent text-white rounded-lg text-sm hover:bg-accent-light transition">
                 <Plus size={14} /> Añadir línea
               </button>
@@ -463,17 +474,17 @@ export default function InvoiceForm({ docType = 'factura' }) {
             </datalist>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-sm table-fixed">
+              <table className="w-full text-sm min-w-[860px]">
                 <thead>
                   <tr className="bg-gray-50">
                     <th className="px-2 py-2 text-left w-16">Art.</th>
-                    <th className="px-2 py-2 text-left">Descripcion</th>
+                    <th className="px-2 py-2 text-left">Descripción</th>
                     <th className="px-2 py-2 text-center w-16">Ud.</th>
                     <th className="px-2 py-2 text-right w-24">Cantidad</th>
                     <th className="px-2 py-2 text-right w-24">Precio</th>
                     <th className="px-2 py-2 text-right w-20">Subtotal</th>
                     <th className="px-2 py-2 text-right w-16">Dto.%</th>
-                    <th className="px-2 py-2 text-center w-20" title="Tipo de IVA de esta linea. 'Global' usa el tipo de la pestana Impuestos.">IVA</th>
+                    <th className="px-2 py-2 text-center w-20" title="Tipo de IVA de esta linea. 'Global' usa el tipo de la pestaña Impuestos.">IVA</th>
                     <th className="px-2 py-2 text-right w-24">Total</th>
                     <th className="w-10"></th>
                   </tr>
@@ -534,7 +545,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
                       </td>
                       <td className="px-1 py-1">
                         {invoice.lineas.length > 1 && (
-                          <button onClick={() => removeLinea(idx)} className="p-1 text-red-400 hover:text-red-600 transition">
+                          <button onClick={() => removeLinea(idx)} aria-label={`Eliminar línea ${idx + 1}`} title="Eliminar línea" className="p-1 text-red-400 hover:text-red-600 transition">
                             <Trash2 size={14} />
                           </button>
                         )}
@@ -613,7 +624,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-700">Deducciones</h2>
-                  <p className="text-sm text-gray-500 mt-1">Descuenta importes desde una factura anterior o añadelos a mano</p>
+                  <p className="text-sm text-gray-500 mt-1">Descuenta importes desde una factura anterior o añádelos a mano</p>
                 </div>
                 <button onClick={handleAddManual} className="flex items-center gap-1.5 px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
                   <Plus size={14} /> Añadir manual
@@ -622,8 +633,8 @@ export default function InvoiceForm({ docType = 'factura' }) {
 
               {/* Selector de factura */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <label className={labelClass}>O importar desde factura anterior</label>
-                <select className={inputClass + ' mt-1'} value=""
+                <label htmlFor="f-o-importar-desde-factura-anterio" className={labelClass}>O importar desde factura anterior</label>
+                <select id="f-o-importar-desde-factura-anterio" className={inputClass + ' mt-1'} value=""
                   onChange={e => { if (e.target.value) handleSelectInvoice(e.target.value); }}>
                   <option value="">Seleccionar factura guardada...</option>
                   {availableInvoices.map(inv => {
@@ -649,15 +660,15 @@ export default function InvoiceForm({ docType = 'factura' }) {
                     if (ded.manual && !ded.lineas) {
                       return (
                         <div key={dIdx} className="border border-orange-200 rounded-xl bg-orange-50 p-4">
-                          <div className="grid grid-cols-12 gap-3 items-end">
-                            <div className="col-span-8">
-                              <label className={labelClass}>Mencion / Descripcion</label>
-                              <input className={inputClass}
+                          <div className="grid grid-cols-2 sm:grid-cols-12 gap-3 items-end">
+                            <div className="col-span-2 sm:col-span-8">
+                              <label htmlFor={`f-mencion-descripcion-${dIdx}`} className={labelClass}>Mención / Descripción</label>
+                              <input id={`f-mencion-descripcion-${dIdx}`} className={inputClass}
                                 placeholder="Ej: FACTURA 1 - 260013 DEL 24 DE FEBRERO DE 2026"
                                 value={ded.descripcion || ''}
                                 onChange={e => updateField(`deducciones.${dIdx}.descripcion`, e.target.value)} />
                             </div>
-                            <div className="col-span-3">
+                            <div className="col-span-1 sm:col-span-3">
                               <label className={labelClass}>Importe a deducir</label>
                               <div className="relative">
                                 <span className="absolute left-3 top-2.5 text-red-500 font-bold">-</span>
@@ -669,10 +680,10 @@ export default function InvoiceForm({ docType = 'factura' }) {
                               </div>
                               <p className="text-xs text-gray-400 mt-1">Usa coma para decimales: 13.556,47</p>
                             </div>
-                            <div className="col-span-1 flex justify-center">
+                            <div className="col-span-1 sm:col-span-1 flex justify-center">
                               <button onClick={() => {
                                 setInvoice(prev => ({ ...prev, deducciones: prev.deducciones.filter((_, i) => i !== dIdx) }));
-                              }} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                              }} aria-label="Eliminar deducción" title="Eliminar deducción" className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
                                 <Trash2 size={16} />
                               </button>
                             </div>
@@ -690,7 +701,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
                             <div className="flex items-center gap-2 flex-1">
                               <span className="text-xs font-semibold text-orange-700 uppercase">Manual</span>
                               <input className="flex-1 px-2 py-1 border border-orange-200 rounded text-sm bg-white"
-                                placeholder="Descripcion / Referencia (ej: Ajuste, Anticipo factura 260010)"
+                                placeholder="Descripción / Referencia (ej: Ajuste, Anticipo factura 260010)"
                                 value={ded.facturaNum || ''}
                                 onChange={e => updateField(`deducciones.${dIdx}.facturaNum`, e.target.value)} />
                             </div>
@@ -704,13 +715,13 @@ export default function InvoiceForm({ docType = 'factura' }) {
                             <span className="text-sm font-mono font-bold text-orange-700">-{formatNumber(dedTotal)} &euro;</span>
                             <button onClick={() => {
                               setInvoice(prev => ({ ...prev, deducciones: prev.deducciones.filter((_, i) => i !== dIdx) }));
-                            }} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                            }} aria-label="Eliminar deducción" title="Eliminar deducción" className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
                               <Trash2 size={15} />
                             </button>
                           </div>
                         </div>
 
-                        {/* Lineas de la deduccion */}
+                        {/* Líneas de la deduccion */}
                         <div className="p-3">
                           <table className="w-full text-sm table-fixed">
                             <thead>
@@ -776,7 +787,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
                                     {ded.manual && (
                                       <td className="px-1 py-1.5 text-center">
                                         {ded.lineas.length > 1 && (
-                                          <button onClick={() => removeLineFromDeduccion(dIdx, lIdx)}
+                                          <button onClick={() => removeLineFromDeduccion(dIdx, lIdx)} aria-label="Quitar línea de la deducción" title="Quitar línea"
                                             className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition">
                                             <Trash2 size={12} />
                                           </button>
@@ -791,7 +802,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
                           {ded.manual && (
                             <button onClick={() => addLineToDeduccion(dIdx)}
                               className="mt-2 w-full py-1.5 border border-dashed border-orange-300 text-orange-600 rounded-lg text-xs font-medium hover:bg-orange-50 transition flex items-center justify-center gap-1">
-                              <Plus size={12} /> Añadir linea
+                              <Plus size={12} /> Añadir línea
                             </button>
                           )}
                         </div>
@@ -817,14 +828,14 @@ export default function InvoiceForm({ docType = 'factura' }) {
           const tax = calcInvoiceTaxBreakdown(invoice.lineas, ivaConfig, invoice.deducciones);
           return (
             <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-700 border-b pb-2">Configuracion de Impuestos</h2>
+              <h2 className="text-lg font-semibold text-gray-700 border-b pb-2">Configuración de Impuestos</h2>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* IVA selector */}
                 <div className="space-y-4">
                   <div>
-                    <label className={labelClass}>Tipo de IVA (por defecto)</label>
-                    <select className={inputClass} value={ivaConfig.tipo}
+                    <label htmlFor="f-tipo-de-iva-por-defecto" className={labelClass}>Tipo de IVA (por defecto)</label>
+                    <select id="f-tipo-de-iva-por-defecto" className={inputClass} value={ivaConfig.tipo}
                       onChange={e => updateField('iva.tipo', parseInt(e.target.value))}>
                       {IVA_OPTIONS.map(rate => (
                         <option key={rate} value={rate}>{rate}%{rate === 0 ? ' (Exento)' : ''}</option>
@@ -842,12 +853,12 @@ export default function InvoiceForm({ docType = 'factura' }) {
                     </details>
                   </div>
                   <div>
-                    <label className={labelClass}>Retencion IRPF</label>
-                    <select className={inputClass} value={ivaConfig.irpf || 0}
+                    <label htmlFor="f-retencion-irpf" className={labelClass}>Retención IRPF</label>
+                    <select id="f-retencion-irpf" className={inputClass} value={ivaConfig.irpf || 0}
                       onChange={e => updateField('iva.irpf', parseInt(e.target.value))}>
-                      <option value={0}>Sin retencion</option>
-                      <option value={7}>7% (nuevos autonomos)</option>
-                      <option value={15}>15% (general autonomos)</option>
+                      <option value={0}>Sin retención</option>
+                      <option value={7}>7% (nuevos autónomos)</option>
+                      <option value={15}>15% (general autónomos)</option>
                       <option value={19}>19% (alquileres)</option>
                       <option value={1}>1%</option>
                       <option value={2}>2%</option>
@@ -880,7 +891,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
                     <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent"
                       checked={ivaConfig.inversionSujetoPasivo || false}
                       onChange={e => updateField('iva.inversionSujetoPasivo', e.target.checked)} />
-                    <span className="text-sm">Inversion del Sujeto Pasivo (Art.84 Ley IVA)</span>
+                    <span className="text-sm">Inversión del Sujeto Pasivo (Art.84 Ley IVA)</span>
                   </label>
                   <p className="text-xs text-gray-400 -mt-1 ml-7">
                     Típico en <strong>subcontratas de construcción</strong> entre empresas: la factura va sin IVA
@@ -962,27 +973,27 @@ export default function InvoiceForm({ docType = 'factura' }) {
         {activeTab === 'condiciones' && docType === 'presupuesto' && (
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-gray-700 border-b pb-2">Condiciones del Presupuesto</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Validez del Presupuesto</label>
-                <select className={inputClass} value={invoice.validez || '30 dias'}
+                <label htmlFor="f-validez-del-presupuesto" className={labelClass}>Validez del Presupuesto</label>
+                <select id="f-validez-del-presupuesto" className={inputClass} value={invoice.validez || '30 días'}
                   onChange={e => updateField('validez', e.target.value)}>
-                  <option value="15 dias">15 dias</option>
-                  <option value="30 dias">30 dias</option>
-                  <option value="60 dias">60 dias</option>
-                  <option value="90 dias">90 dias</option>
+                  <option value="15 días">15 días</option>
+                  <option value="30 días">30 días</option>
+                  <option value="60 días">60 días</option>
+                  <option value="90 días">90 días</option>
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Plazo de Ejecucion</label>
-                <input className={inputClass} value={invoice.plazoEjecucion || ''} onChange={e => updateField('plazoEjecucion', e.target.value)}
+                <label htmlFor="f-plazo-de-ejecucion" className={labelClass}>Plazo de Ejecución</label>
+                <input id="f-plazo-de-ejecucion" className={inputClass} value={invoice.plazoEjecucion || ''} onChange={e => updateField('plazoEjecucion', e.target.value)}
                   placeholder="Ej: 2 semanas, 1 mes..." />
               </div>
             </div>
             <div>
-              <label className={labelClass}>Condiciones del Presupuesto</label>
-              <textarea className={inputClass + ' h-24'} value={invoice.condiciones || ''} onChange={e => updateField('condiciones', e.target.value)}
-                placeholder="Condiciones especificas de este presupuesto..." />
+              <label htmlFor="f-condiciones-del-presupuesto" className={labelClass}>Condiciones del Presupuesto</label>
+              <textarea id="f-condiciones-del-presupuesto" className={inputClass + ' h-24'} value={invoice.condiciones || ''} onChange={e => updateField('condiciones', e.target.value)}
+                placeholder="Condiciones específicas de este presupuesto..." />
             </div>
 
             <h2 className="text-lg font-semibold text-gray-700 border-b pb-2 mt-4">Condiciones Comerciales</h2>
@@ -991,7 +1002,7 @@ export default function InvoiceForm({ docType = 'factura' }) {
               <textarea className={inputClass + ' h-64 text-xs leading-relaxed'} value={invoice.condicionesComerciales || ''} onChange={e => updateField('condicionesComerciales', e.target.value)} />
             </div>
 
-            {/* Firma de aceptacion del cliente (canvas tactil) */}
+            {/* Firma de aceptación del cliente (canvas tactil) */}
             <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-4">
               <SignaturePad
                 label="Firma del cliente (aceptación)"
@@ -1013,26 +1024,26 @@ export default function InvoiceForm({ docType = 'factura' }) {
             </div>
 
             {invoice.vencimientos.map((v, idx) => (
-              <div key={idx} className="grid grid-cols-5 gap-3 items-end p-4 bg-gray-50 rounded-lg">
+              <div key={idx} className="grid grid-cols-2 lg:grid-cols-5 gap-3 items-end p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <label className={labelClass}>Fecha</label>
-                  <input type="date" className={inputClass} value={v.fecha} onChange={e => updateField(`vencimientos.${idx}.fecha`, e.target.value)} />
+                  <label htmlFor={`f-fecha-2-${idx}`} className={labelClass}>Fecha</label>
+                  <input id={`f-fecha-2-${idx}`} type="date" className={inputClass} value={v.fecha} onChange={e => updateField(`vencimientos.${idx}.fecha`, e.target.value)} />
                 </div>
                 <div>
-                  <label className={labelClass}>Importe</label>
-                  <input type="number" step="0.01" className={inputClass} value={v.importe} onChange={e => updateField(`vencimientos.${idx}.importe`, e.target.value)} />
+                  <label htmlFor={`f-importe-${idx}`} className={labelClass}>Importe</label>
+                  <input id={`f-importe-${idx}`} type="number" step="0.01" className={inputClass} value={v.importe} onChange={e => updateField(`vencimientos.${idx}.importe`, e.target.value)} />
                 </div>
                 <div>
-                  <label className={labelClass}>Domiciliación</label>
-                  <input className={inputClass} value={v.domiciliacion} onChange={e => updateField(`vencimientos.${idx}.domiciliacion`, e.target.value)} />
+                  <label htmlFor={`f-domiciliacion-${idx}`} className={labelClass}>Domiciliación</label>
+                  <input id={`f-domiciliacion-${idx}`} className={inputClass} value={v.domiciliacion} onChange={e => updateField(`vencimientos.${idx}.domiciliacion`, e.target.value)} />
                 </div>
                 <div>
-                  <label className={labelClass}>Nº Cuenta</label>
-                  <input className={inputClass} value={v.numeroCuenta} onChange={e => updateField(`vencimientos.${idx}.numeroCuenta`, e.target.value)} />
+                  <label htmlFor={`f-no-cuenta-${idx}`} className={labelClass}>Nº Cuenta</label>
+                  <input id={`f-no-cuenta-${idx}`} className={inputClass} value={v.numeroCuenta} onChange={e => updateField(`vencimientos.${idx}.numeroCuenta`, e.target.value)} />
                 </div>
                 <div>
                   {invoice.vencimientos.length > 1 && (
-                    <button onClick={() => removeVencimiento(idx)} className="p-2 text-red-400 hover:text-red-600 transition">
+                    <button onClick={() => removeVencimiento(idx)} aria-label={`Eliminar vencimiento ${idx + 1}`} title="Eliminar vencimiento" className="p-2 text-red-400 hover:text-red-600 transition">
                       <Trash2 size={16} />
                     </button>
                   )}

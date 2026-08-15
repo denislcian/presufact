@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import { nextNumberFrom } from './utils/numbering';
 
 export const db = new Dexie('FacturasDB');
 
@@ -93,17 +94,17 @@ export function getDefaultDocument(docType = 'factura', emisor) {
       descripcionObra: '',
       lineas: [{ articulo: '', descripcion: '', cantidad: '', precioUd: '', dto: '', unidad: 'ud' }],
       iva: { tipo: 21, recargoEquivalencia: false, inversionSujetoPasivo: false },
-      validez: '30 dias',
+      validez: '30 días',
       plazoEjecucion: '',
       condiciones: '',
-      condicionesComerciales: em.condicionesComerciales || `- Validez: Este presupuesto tiene una validez de 30 dias desde su fecha de emision.
+      condicionesComerciales: em.condicionesComerciales || `- Validez: Este presupuesto tiene una validez de 30 días desde su fecha de emisión.
 
 - Forma de pago: A convenir entre las partes.
 
 - Los precios indicados no incluyen IVA salvo que se especifique lo contrario.
 
-- Aceptacion: La firma o aceptacion de este documento supone la conformidad con todas las condiciones aqui descritas.`,
-      observaciones: iban ? `Numero de cuenta: ${iban}` : ''
+- Aceptación: La firma o aceptación de este documento supone la conformidad con todas las condiciones aquí descritas.`,
+      observaciones: iban ? `Número de cuenta: ${iban}` : ''
     };
   }
 
@@ -115,7 +116,7 @@ export function getDefaultDocument(docType = 'factura', emisor) {
     date: new Date().toISOString().split('T')[0],
     emisor: { ...em },
     cliente: { nombre: '', nif: '', direccion: '', cp: '', ciudad: '', provincia: '', agente: '' },
-    formaPago: 'TRANSFERENCIA BANCARIA A LA RECEPCION DE LA FACTURA',
+    formaPago: 'TRANSFERENCIA BANCARIA A LA RECEPCIÓN DE LA FACTURA',
     descripcionTrabajo: '',
     lineas: [{ articulo: '', descripcion: '', cantidad: '', precioUd: '', dto: '', unidad: 'ud' }],
     iva: { tipo: 21, recargoEquivalencia: false, inversionSujetoPasivo: false },
@@ -142,27 +143,9 @@ export async function getNextNumber(docType = 'factura') {
   const all = await table.toArray();
   if (all.length === 0) return config.defaultNumber;
 
-  // Maximo NUMERICO del sufijo de cada numero (el orden lexicografico falla con
-  // longitudes distintas, y numeros libres como "FA-2026-01" o "R-0001" no deben
-  // producir jamas un "NaN"). Las rectificativas (serie R-) llevan contador propio.
-  let max = 0;
-  let maxRaw = null;
-  for (const doc of all) {
-    const raw = String(doc.invoiceNumber || '');
-    if (/^R-/.test(raw)) continue; // serie de rectificativas: no avanza la serie normal
-    const m = raw.match(/(\d+)\s*$/);
-    if (!m) continue;
-    const n = parseInt(m[1], 10);
-    if (n > max) { max = n; maxRaw = { raw, digits: m[1] }; }
-  }
-  if (!maxRaw) return config.defaultNumber;
-
-  const next = max + 1;
-  // Conservar el formato del numero mas alto: prefijo + padding de ceros
-  const prefix = maxRaw.raw.slice(0, maxRaw.raw.length - maxRaw.digits.length);
-  const padded = String(next).padStart(maxRaw.digits.length, '0');
-  return prefix + padded;
+  return nextNumberFrom(all.map(d => ({ invoiceNumber: d.invoiceNumber, date: d.date, createdAt: d.createdAt })), config.defaultNumber);
 }
+
 
 // Fire auto-backup after any mutation (dynamic import avoids circular dependency)
 function triggerAutoBackup() {
@@ -289,7 +272,7 @@ export async function updateDocumentFields(docType, id, fields) {
 }
 
 // Estados disponibles por tipo de documento
-// Estados alineados con el flujo del RD 238/2026 (aceptacion/rechazo y pago):
+// Estados alineados con el flujo del RD 238/2026 (aceptación/rechazo y pago):
 // el historial fechado queda registrado en cada documento (estadoHistorial).
 export const ESTADOS = {
   factura: [
