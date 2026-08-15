@@ -9,10 +9,8 @@ import { addLocalDemoTicket, isAdminDemoVisto } from '../utils/adminDemo';
 const isDemoMode = () => import('../utils/demoData').then(m => m.isDemoMode());
 const isOnboarded = () => import('../db').then(m => m.isOnboarded());
 
-// Canal publico alternativo al buzon. Mientras el repositorio sea privado
-// queda desactivado (null): un enlace que da 404 es peor que ninguno.
-// Cuando el repo sea publico: 'https://github.com/denislcian/presufact/issues'
-const GITHUB_ISSUES_URL = null;
+// Canal publico alternativo al buzon (repositorio publico).
+const GITHUB_ISSUES_URL = 'https://github.com/denislcian/presufact/issues';
 
 // Formulario de ticket: envia al buzon propio (/api/tickets). Si la app esta en
 // modo demo, el ticket se guarda ademas en este navegador para que aparezca en
