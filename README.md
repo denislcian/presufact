@@ -43,7 +43,8 @@ Presufact es una aplicación web para autónomos y pequeños negocios en España
 Detalles de ingeniería de los que estoy orgulloso:
 
 - **Round-trip de PDF**: el importador reconstruye un documento a partir del PDF usando anclajes posicionales (mm→pt) y fusión de etiquetas con `charSpace`, con recuperación del tipo de IVA por línea — importar un PDF propio reproduce el documento exacto, multi-IVA incluido.
-- **Motor fiscal**: cálculo por grupos de tipo impositivo con herencia por línea, IRPF sobre base (con inversión de signo en rectificativas) y desglose por tipo cubierto por una batería de tests adversariales (`npm test`).
+- **Motor fiscal**: cálculo por grupos de tipo impositivo con herencia por línea, IRPF sobre base (con inversión de signo en rectificativas) y desglose por tipo cubierto por una batería de tests adversariales (`npm test`, 22 casos incluida la numeración por series y años).
+- **Carga diferida**: la landing pesa 98 KB gzip; la app (Dexie, jsPDF, pdf.js), el panel de admin y la demo se cargan en chunks separados solo cuando se entra en ellos.
 - **Buzón de soporte sin traicionar la privacidad**: endpoint serverless con rate-limit por IP (hasheada), comparación de token en tiempo constante y panel de administración protegido en el servidor.
 
 ## Desarrollo
