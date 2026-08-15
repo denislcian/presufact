@@ -14,7 +14,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      # npm ci rechaza el lockfile por los bindings wasm opcionales de rolldown/tailwind
+      # (referencian @emnapi/* sin entrada propia); npm install resuelve el mismo lockfile.
+      - run: npm install --no-audit --no-fund
       - run: npm run lint
       - run: npm test
       - run: npm run build
