@@ -4,6 +4,13 @@
 
 const LOCAL_KEY = 'presufact-demo-tickets';        // tickets creados por el visitante
 const OVERRIDE_KEY = 'presufact-demo-tickets-ov';  // cambios sobre los de ejemplo (estado/borrado)
+export const ADMIN_DEMO_FLAG = 'presufact-admin-demo'; // el visitante ha abierto el panel demo
+
+// El formulario de soporte trata el envio como demo si la app tiene la demo
+// cargada O si el visitante ha abierto el panel de admin en modo demo.
+export function isAdminDemoVisto() {
+  return localStorage.getItem(ADMIN_DEMO_FLAG) === '1';
+}
 
 const iso = (diasAtras, hora = 10) => {
   const d = new Date(Date.now() - diasAtras * 86400000);
@@ -68,6 +75,12 @@ export function deleteDemoTicket(id) {
 export function resetDemoTickets() {
   localStorage.removeItem(LOCAL_KEY);
   localStorage.removeItem(OVERRIDE_KEY);
+}
+
+// Limpieza total (la usa "Borrar demo y empezar de cero")
+export function clearAdminDemo() {
+  resetDemoTickets();
+  localStorage.removeItem(ADMIN_DEMO_FLAG);
 }
 
 // ---- Trafico agregado del hosting (ficticio, determinista) ----

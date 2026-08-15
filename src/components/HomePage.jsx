@@ -22,6 +22,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [companyName, setCompanyName] = useState('');
   const [data, setData] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -39,9 +40,10 @@ export default function HomePage() {
       const hoy = new Date().toISOString().split('T')[0];
       const vencidas = reales.filter(f => isPendienteCobro(f) && (f.vencimientos || []).some(v => v.fecha && v.fecha < hoy));
 
+      // Mes derivado del string 'YYYY-MM-DD' (sin new Date: evita saltos de zona horaria)
       const porMes = MESES.map((m, i) => ({
         label: m,
-        value: delAno.filter(f => new Date(f.date).getMonth() === i).reduce((s, f) => s + totalDoc(f), 0),
+        value: delAno.filter(f => Number((f.date || '').slice(5, 7)) - 1 === i).reduce((s, f) => s + totalDoc(f), 0),
       }));
 
       const presuPend = presupuestos.filter(p => (p.estado || 'pendiente') === 'pendiente');
@@ -65,13 +67,22 @@ export default function HomePage() {
       ].sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || '')).slice(0, 6);
 
       setData({
-        nFacturas: facturas.length, nPresupuestos: presupuestos.length, nClientes: clientes.length,
+        nFacturas: facturas.length, nFacturasReales: delAno.length, nPresupuestos: presupuestos.length, nClientes: clientes.length,
         facturadoAno, pendienteCobro, nPendientes, nVencidas: vencidas.length, porMes,
         presuPend: presuPend.length, valorPresuPend, tasaAcept, estados, topClientes, recientes, year,
       });
-    })();
+    })().catch((e) => { console.error(e); setError(true); });
   }, []);
 
+  if (error) {
+    return (
+      <div className="max-w-md mx-auto mt-16 bg-white rounded-2xl border border-red-200 p-6 text-center">
+        <p className="font-semibold text-gray-800">No se pudieron leer los datos guardados</p>
+        <p className="text-sm text-gray-500 mt-1">Puede que el navegador esté en modo privado o bloquee el almacenamiento local.</p>
+        <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">Reintentar</button>
+      </div>
+    );
+  }
   if (!data) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" /></div>;
   }
@@ -79,7 +90,7 @@ export default function HomePage() {
   const vacio = data.nFacturas + data.nPresupuestos === 0;
 
   const kpis = [
-    { label: `Facturado en ${data.year}`, value: eur(data.facturadoAno), icon: TrendingUp, tone: 'text-accent bg-blue-50', sub: `${data.nFacturas} facturas en total` },
+    { label: `Facturado en ${data.year}`, value: eur(data.facturadoAno), icon: TrendingUp, tone: 'text-accent bg-blue-50', sub: `${data.nFacturasReales} factura${data.nFacturasReales === 1 ? '' : 's'} este año` },
     { label: 'Pendiente de cobro', value: eur(data.pendienteCobro), icon: Clock, tone: data.nVencidas ? 'text-red-600 bg-red-50' : 'text-amber-600 bg-amber-50', sub: data.nVencidas ? `${data.nVencidas} vencida${data.nVencidas > 1 ? 's' : ''} · ${data.nPendientes} pendientes` : `${data.nPendientes} factura${data.nPendientes === 1 ? '' : 's'}` },
     { label: 'Presupuestos abiertos', value: eur(data.valorPresuPend), icon: ClipboardList, tone: 'text-violet-600 bg-violet-50', sub: `${data.presuPend} pendiente${data.presuPend === 1 ? '' : 's'} de respuesta` },
     { label: 'Tasa de aceptación', value: data.tasaAcept === null ? '—' : `${data.tasaAcept} %`, icon: CheckCircle2, tone: 'text-emerald-600 bg-emerald-50', sub: 'presupuestos aceptados vs rechazados' },

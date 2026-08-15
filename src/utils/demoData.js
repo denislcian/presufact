@@ -1,5 +1,6 @@
 import { db, saveDocument } from '../db';
 import { LOGO_DEMO, FIRMA_DEMO } from './demoAssets';
+import { clearAdminDemo } from './adminDemo';
 
 // Datos de ejemplo realistas para ensenar Presufact (modo demo).
 // Cubren todos los rincones: presupuestos en todos los estados (uno firmado
@@ -179,7 +180,9 @@ export async function isDemoMode() {
   return !!s?.value;
 }
 
-// Borra TODO (documentos, clientes, empresas) y sale del modo demo
+// Borra TODO (documentos, clientes, empresas) y sale del modo demo.
+// Tambien desvincula la carpeta de copias: asi la siembra de la demo no pisa
+// el backup real del usuario en su disco/nube.
 export async function clearDemoData() {
   await db.invoices.clear();
   await db.presupuestos.clear();
@@ -187,5 +190,7 @@ export async function clearDemoData() {
   await db.settings.delete('emisor');
   await db.settings.delete('emisores');
   await db.settings.delete('demoMode');
+  await db.settings.delete('backupDirHandle');
   Object.keys(localStorage).filter(k => k.startsWith('presufact-backup')).forEach(k => localStorage.removeItem(k));
+  clearAdminDemo();
 }

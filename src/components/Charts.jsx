@@ -2,48 +2,41 @@
 // Reglas: marcas finas, una sola escala, un solo tono para magnitudes, colores
 // de estado siempre acompanados de etiqueta, tooltip nativo por marca.
 
-// Barras verticales de una serie (p. ej. facturado por mes)
+// Barras verticales de una serie (p. ej. facturado por mes). En HTML/CSS para
+// que texto y barras no escalen con el ancho: legible igual en movil y escritorio.
 export function BarChart({ data, color = '#2563eb', height = 160, formatValue = (v) => String(v), emptyLabel = 'Sin datos' }) {
   const max = Math.max(0, ...data.map(d => d.value));
-  const n = data.length || 1;
-  const W = 600, H = height, padB = 22, padT = 18;
-  const plotH = H - padB - padT;
-  const gap = 8;
-  const bw = Math.max(4, (W - gap * (n - 1)) / n);
   const maxIdx = data.findIndex(d => d.value === max);
   if (max <= 0) {
     return <div className="h-40 flex items-center justify-center text-sm text-gray-400">{emptyLabel}</div>;
   }
+  const n = data.length;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Gráfico de barras">
-      {/* linea base */}
-      <line x1="0" y1={H - padB} x2={W} y2={H - padB} stroke="#e5e7eb" strokeWidth="1" />
-      {data.map((d, i) => {
-        const h = d.value > 0 ? Math.max(3, (d.value / max) * plotH) : 0;
-        const x = i * (bw + gap);
-        const y = H - padB - h;
-        const r = Math.min(4, bw / 2);
-        // extremo superior redondeado, base recta anclada al eje
-        const path = h > 0
-          ? `M${x},${H - padB} V${y + r} Q${x},${y} ${x + r},${y} H${x + bw - r} Q${x + bw},${y} ${x + bw},${y + r} V${H - padB} Z`
-          : '';
-        return (
-          <g key={i}>
-            {path && <path d={path} fill={color} opacity={i === maxIdx ? 1 : 0.75}><title>{`${d.label}: ${formatValue(d.value)}`}</title></path>}
-            {/* zona de hover mas grande que la marca */}
-            <rect x={x} y={padT} width={bw} height={plotH} fill="transparent"><title>{`${d.label}: ${formatValue(d.value)}`}</title></rect>
-            {i === maxIdx && (() => {
-              // Etiqueta del maximo sin salirse del lienzo en los extremos
-              const cx = x + bw / 2;
-              const anchor = cx > W - 60 ? 'end' : cx < 60 ? 'start' : 'middle';
-              const tx = anchor === 'end' ? x + bw : anchor === 'start' ? x : cx;
-              return <text x={tx} y={y - 6} textAnchor={anchor} fontSize="11" fill="#374151" fontWeight="600">{formatValue(d.value)}</text>;
-            })()}
-            <text x={x + bw / 2} y={H - 6} textAnchor="middle" fontSize="11" fill="#9ca3af">{d.label}</text>
-          </g>
-        );
-      })}
-    </svg>
+    <div role="img" aria-label="Gráfico de barras">
+      <div className="flex items-end gap-1 sm:gap-2 border-b border-gray-200" style={{ height }}>
+        {data.map((d, i) => {
+          const pct = d.value > 0 ? Math.max(2, (d.value / max) * 100) : 0;
+          const esMax = i === maxIdx;
+          // La etiqueta del maximo se ancla hacia dentro en los extremos para no salirse
+          const labelPos = i >= n - 2 ? 'right-0' : i <= 1 ? 'left-0' : 'left-1/2 -translate-x-1/2';
+          return (
+            <div key={i} className="flex-1 h-full flex flex-col justify-end relative min-w-0" title={`${d.label}: ${formatValue(d.value)}`}>
+              {esMax && (
+                <span className={`absolute ${labelPos} text-[11px] font-semibold text-gray-700 whitespace-nowrap`} style={{ bottom: `calc(${pct}% + 4px)` }}>
+                  {formatValue(d.value)}
+                </span>
+              )}
+              <div className="w-full rounded-t" style={{ height: `${pct}%`, backgroundColor: color, opacity: esMax ? 1 : 0.75 }} />
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex gap-1 sm:gap-2 mt-1.5">
+        {data.map((d, i) => (
+          <div key={i} className="flex-1 text-center text-[10px] sm:text-[11px] text-gray-400 truncate min-w-0">{d.label}</div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -116,7 +109,7 @@ export function HBarList({ items, color = '#2563eb', formatValue = (v) => String
             <span className="text-gray-900 font-semibold tabular-nums flex-shrink-0">{formatValue(it.value)}</span>
           </div>
           <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full rounded-full" style={{ width: `${(it.value / max) * 100}%`, backgroundColor: color, opacity: i === 0 ? 1 : 0.7 }} />
+            <div className="h-full rounded-full" style={{ width: `${Math.max(0, (it.value / max) * 100)}%`, backgroundColor: color, opacity: i === 0 ? 1 : 0.7 }} />
           </div>
           {it.sub && <div className="text-[11px] text-gray-400 mt-0.5">{it.sub}</div>}
         </li>

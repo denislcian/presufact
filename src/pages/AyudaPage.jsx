@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FileText, ArrowLeft, LifeBuoy, Bug, ExternalLink, Send, CheckCircle, Sparkles } from 'lucide-react';
 import { isDemoMode } from '../utils/demoData';
-import { addLocalDemoTicket } from '../utils/adminDemo';
+import { addLocalDemoTicket, isAdminDemoVisto } from '../utils/adminDemo';
+
+// Canal publico alternativo al buzon. Mientras el repositorio sea privado
+// queda desactivado (null): un enlace que da 404 es peor que ninguno.
+// Cuando el repo sea publico: 'https://github.com/denislcian/presufact/issues'
+const GITHUB_ISSUES_URL = null;
 
 // Formulario de ticket: envia al buzon propio (/api/tickets). Si la app esta en
 // modo demo, el ticket se guarda ademas en este navegador para que aparezca en
@@ -21,7 +26,7 @@ function TicketForm() {
     }
     setEstado('enviando');
     setErrorMsg('');
-    const demo = await isDemoMode().catch(() => false);
+    const demo = isAdminDemoVisto() || await isDemoMode().catch(() => false);
     let enviadoReal = false;
     let errorServidor = '';
     try {
@@ -94,7 +99,7 @@ function TicketForm() {
       {estado === 'error' && <p className="mt-2 text-sm text-red-500">{errorMsg}</p>}
       {estado === 'sinBuzon' && (
         <p className="mt-2 text-sm text-amber-600">
-          El buzón no está disponible ahora mismo — usa el canal de GitHub de aquí abajo, que funciona siempre.
+          El buzón no está disponible ahora mismo. {GITHUB_ISSUES_URL ? 'Usa el canal de GitHub de aquí abajo, que funciona siempre.' : 'Inténtalo de nuevo en unos minutos; disculpa las molestias.'}
         </p>
       )}
       <button onClick={enviar} disabled={estado === 'enviando'}
@@ -178,21 +183,23 @@ export default function AyudaPage() {
           <TicketForm />
         </div>
 
-        <div className="mt-6 bg-gray-50 border border-gray-200 rounded-2xl p-6">
-          <h2 className="text-lg font-bold flex items-center gap-2"><Bug size={20} /> También en GitHub</h2>
-          <p className="mt-2 text-sm text-gray-600 leading-relaxed">
-            Presufact se desarrolla en abierto. Si prefieres GitHub (o el buzón no está disponible), abre una
-            incidencia contando qué hacías y qué esperabas que pasara. Lo leemos todo.
-          </p>
-          <a href="https://github.com/denislcian/presufact/issues" target="_blank" rel="noopener"
-            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-700 text-white rounded-lg text-sm font-semibold transition">
-            <ExternalLink size={16} /> Abrir una incidencia en GitHub
-          </a>
-          <p className="mt-3 text-xs text-gray-400">
-            Importante: no incluyas datos reales de clientes ni facturas en el reporte — con una descripción o una
-            captura con datos de ejemplo es suficiente.
-          </p>
-        </div>
+        {GITHUB_ISSUES_URL && (
+          <div className="mt-6 bg-gray-50 border border-gray-200 rounded-2xl p-6">
+            <h2 className="text-lg font-bold flex items-center gap-2"><Bug size={20} /> También en GitHub</h2>
+            <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+              Presufact se desarrolla en abierto. Si prefieres GitHub (o el buzón no está disponible), abre una
+              incidencia contando qué hacías y qué esperabas que pasara. Lo leemos todo.
+            </p>
+            <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener"
+              className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-700 text-white rounded-lg text-sm font-semibold transition">
+              <ExternalLink size={16} /> Abrir una incidencia en GitHub
+            </a>
+            <p className="mt-3 text-xs text-gray-400">
+              Importante: no incluyas datos reales de clientes ni facturas en el reporte — con una descripción o una
+              captura con datos de ejemplo es suficiente.
+            </p>
+          </div>
+        )}
 
         <div className="mt-8 text-sm text-gray-500">
           <Link to="/privacidad" className="text-accent underline hover:no-underline">Privacidad y seguridad</Link>

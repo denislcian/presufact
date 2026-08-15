@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { FileText, Lock, LogOut, RefreshCw, CheckCircle, RotateCcw, Trash2, Inbox, Sparkles, Activity, Globe, ShieldCheck, Clock, Mail, Bug, Lightbulb, HelpCircle, ArrowUpRight, ArrowDownRight, LifeBuoy } from 'lucide-react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { FileText, Lock, LogOut, RefreshCw, CheckCircle, RotateCcw, Trash2, Inbox, Sparkles, Activity, Globe, ShieldCheck, Clock, Mail, Bug, Lightbulb, HelpCircle, ArrowUpRight, ArrowDownRight, LifeBuoy, ArrowLeft } from 'lucide-react';
 import { Sparkline, Donut, HBarList, BarChart } from '../components/Charts';
-import { getDemoTickets, updateDemoTicket, deleteDemoTicket, resetDemoTickets, getTraficoDemo, getSaludDemo } from '../utils/adminDemo';
+import { getDemoTickets, updateDemoTicket, deleteDemoTicket, resetDemoTickets, getTraficoDemo, getSaludDemo, ADMIN_DEMO_FLAG } from '../utils/adminDemo';
+import { isDemoMode } from '../utils/demoData';
 
 // Panel de administracion.
 // - Modo REAL: la proteccion esta en el servidor (/api/tickets exige ADMIN_TOKEN;
@@ -45,9 +46,12 @@ function kpisSoporte(tickets) {
 
 export default function AdminPage() {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
-  const [demo, setDemo] = useState(() => params.get('demo') === '1');
+  // El modo demo se deriva SIEMPRE de la URL (?demo=1): atras/adelante lo respetan
+  const demo = params.get('demo') === '1';
   const [input, setInput] = useState('');
+  const [appDemo, setAppDemo] = useState(false); // la app tiene la demo cargada -> "Volver a la app"
   const [tickets, setTickets] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -81,12 +85,17 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (demo) loadDemo(); else if (token) loadReal(token);
+    if (demo) {
+      // Marca para que /ayuda trate el ticket como demo aunque no se haya cargado /demo
+      localStorage.setItem(ADMIN_DEMO_FLAG, '1');
+      loadDemo();
+      isDemoMode().then(setAppDemo).catch(() => {});
+    } else if (token) loadReal(token);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demo]);
 
-  const entrarDemo = () => { setDemo(true); setParams({ demo: '1' }, { replace: true }); };
-  const salirDemo = () => { setDemo(false); setTickets(null); setParams({}, { replace: true }); };
+  const entrarDemo = () => setParams({ demo: '1' }, { replace: true });
+  const salirDemo = () => { setTickets(null); navigate(appDemo ? '/app' : '/'); };
   const login = () => { const tk = input.trim(); if (!tk) return; localStorage.setItem(TOKEN_KEY, tk); setToken(tk); setInput(''); loadReal(tk); };
   const logout = () => { localStorage.removeItem(TOKEN_KEY); setToken(''); setTickets(null); };
 
@@ -202,11 +211,14 @@ export default function AdminPage() {
             <div className="flex items-center gap-2">
               {demo ? (
                 <>
+                  <Link to={appDemo ? '/app' : '/demo'} className="flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent-light text-white rounded-lg text-sm font-semibold transition">
+                    <ArrowLeft size={14} /> <span className="hidden sm:inline">Volver a la app</span><span className="sm:hidden">App</span>
+                  </Link>
                   <button onClick={() => { resetDemoTickets(); loadDemo(); }} className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">
                     <RefreshCw size={14} /> Reiniciar demo
                   </button>
-                  <button onClick={salirDemo} className="flex items-center gap-1.5 px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm transition">
-                    <LogOut size={14} /> Salir
+                  <button onClick={salirDemo} className="flex items-center gap-1.5 px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm transition" title="Salir del panel">
+                    <LogOut size={14} /> <span className="hidden sm:inline">Salir</span>
                   </button>
                 </>
               ) : (
@@ -250,8 +262,8 @@ export default function AdminPage() {
                 <Sparkles size={16} className="flex-shrink-0 mt-0.5" />
                 <p className="flex-1">
                   <strong>Panel en modo demostración.</strong> Los tickets, el tráfico y la salud del servicio son cifras ficticias para enseñar
-                  cómo se gestiona Presufact. Si envías un ticket desde <Link to="/ayuda" className="underline">Ayuda</Link> mientras
-                  estás en la demo, aparecerá aquí.
+                  cómo se gestiona Presufact. Pruébalo: envía un ticket desde <Link to="/ayuda" className="underline">Ayuda</Link> y
+                  aparecerá aquí para que lo resuelvas.
                 </p>
               </div>
             )}

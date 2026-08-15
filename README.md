@@ -4,12 +4,13 @@
 
 **Presupuestos y facturas profesionales en PDF — gratis, sin registro y 100 % local.**
 
-🔗 **Pruébalo:** [presufactu.vercel.app](https://presufactu.vercel.app) · 🧪 **Demo con datos de ejemplo en un clic:** [presufactu.vercel.app/demo](https://presufactu.vercel.app/demo)
+🔗 **Web:** [presufactu.vercel.app](https://presufactu.vercel.app) · 🧪 **Demo con datos de ejemplo:** [/demo](https://presufactu.vercel.app/demo) · 🛠️ **Panel de administración (demo):** [/admin?demo=1](https://presufactu.vercel.app/admin?demo=1)
 
 Presufact es una aplicación web para autónomos y pequeños negocios en España: crea presupuestos con firma de aceptación del cliente y borradores de factura con IVA e IRPF, sin crear cuenta y sin que tus datos salgan de tu dispositivo. No hay servidor de datos: todo vive en tu navegador.
 
 ## Características
 
+- 📊 **Cuadro de mando** — facturado del año, pendiente de cobro (con vencidas), presupuestos abiertos, tasa de aceptación, facturación por mes, top clientes y últimos documentos; calculado al instante en el dispositivo con gráficos SVG propios (sin librerías).
 - 📋 **Presupuestos con firma** — condiciones, validez y firma de aceptación del cliente dibujada en pantalla (o subida como imagen). Conversión a factura en un clic.
 - 🧾 **Facturas en PDF** — multi-IVA por línea (21/10/4/0 %), retención de IRPF, recargo de equivalencia, inversión del sujeto pasivo, descuentos y rectificativas (serie R).
 - 🎨 **PDF profesional** — diseño editorial propio generado con jsPDF, con tu logo y tu color de marca. Sin marcas de agua.
@@ -20,6 +21,7 @@ Presufact es una aplicación web para autónomos y pequeños negocios en España
 - 📱 **PWA** — instalable en escritorio y móvil; funciona completamente sin conexión.
 - 💾 **Copias de seguridad** — automáticas, en la carpeta local que elijas (incluida tu propia nube: OneDrive, Drive, Dropbox) e historial restaurable.
 - 🧪 **Modo demo** — [/demo](https://presufactu.vercel.app/demo) carga una empresa ficticia con 11 facturas, 6 presupuestos (dos firmados por el cliente), 7 clientes y dos ejercicios fiscales; se borra con un clic y nunca pisa datos reales.
+- 🎫 **Soporte y panel de administración** — formulario de tickets con buzón serverless (Upstash Redis, rate-limit por IP, token en tiempo constante) y panel `/admin` con KPIs de soporte, bandeja con filtros y, en modo demo, tráfico agregado y salud del servicio con cifras ficticias etiquetadas como tales.
 
 ## Privacidad y seguridad
 

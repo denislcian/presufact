@@ -33,7 +33,7 @@ export default function DemoPage() {
   }, [navigate]);
 
   const reemplazar = async () => {
-    if (!window.confirm('Se borrarán los datos guardados en este navegador y se cargará la demo. ¿Continuar?')) return;
+    if (!window.confirm('Se borrarán los datos guardados en este navegador (documentos, clientes, empresa y el historial de copias local; la carpeta de copias quedará desvinculada) y se cargará la demo. ¿Continuar?')) return;
     setEstado('sembrando');
     try {
       await clearDemoData();
@@ -76,8 +76,9 @@ export default function DemoPage() {
               <div>
                 <h1 className="text-lg font-bold text-gray-800">Este navegador ya tiene datos</h1>
                 <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">
-                  Hay {docs === 1 ? '1 documento guardado' : `${docs} documentos guardados`} en este dispositivo. La demo
-                  los sustituiría por datos ficticios, así que mejor no tocarlos sin tu permiso.
+                  {docs === 0
+                    ? 'Ya hay una empresa configurada en este dispositivo. La demo la sustituiría por una ficticia, así que mejor no tocarla sin tu permiso.'
+                    : `Hay ${docs === 1 ? '1 documento guardado' : `${docs} documentos guardados`} en este dispositivo. La demo los sustituiría por datos ficticios, así que mejor no tocarlos sin tu permiso.`}
                 </p>
               </div>
             </div>
