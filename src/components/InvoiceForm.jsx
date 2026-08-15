@@ -69,7 +69,8 @@ export default function InvoiceForm({ docType = 'factura' }) {
         // la libreta de clientes entra como pseudo-documentos al autocompletado
         setClientDocs([...libreta.map(c => ({ cliente: c })), ...own, ...others]);
       });
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, docType]);
 
   // Warn before closing the tab with unsaved changes
   useEffect(() => {

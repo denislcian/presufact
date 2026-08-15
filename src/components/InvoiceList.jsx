@@ -43,7 +43,10 @@ export default function InvoiceList({ docType = 'factura' }) {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  // Recargar si cambia el tipo de documento (la ruta ya monta una instancia
+  // por tipo, pero asi el componente es correcto por si solo)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [docType]);
 
   // Years present in the data
   const years = [...new Set(invoices.map(inv => (inv.date || '').slice(0, 4)).filter(Boolean))].sort().reverse();

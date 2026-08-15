@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation, Link } from 'react-router-dom';
+import { Routes, Route, useNavigate, Outlet, Navigate, NavLink, useLocation, Link, useParams } from 'react-router-dom';
 import { FileText, Receipt, ClipboardList, Settings, Home, Calculator, Users, PanelLeftClose, PanelLeftOpen, Menu, X, LifeBuoy } from 'lucide-react';
 import ClientManager from './components/ClientManager';
 import Toaster from './components/Toaster';
@@ -23,6 +23,14 @@ import BackupNudge from './components/BackupNudge';
 import OverdueBanner from './components/OverdueBanner';
 import Onboarding from './components/Onboarding';
 import { isOnboarded, getEmisorSettings } from './db';
+
+// El editor se monta de cero por cada (tipo, id): si React reutilizara la
+// misma instancia al pasar de /facturas/nueva a /presupuestos/nuevo (o de un
+// id a otro) arrastraria el borrador, la pestana y el estado del anterior.
+function DocForm({ docType }) {
+  const { id } = useParams();
+  return <InvoiceForm key={`${docType}-${id || 'nuevo'}`} docType={docType} />;
+}
 
 // Layout for the application area (everything under /app, /facturas, etc.)
 // Handles first-run onboarding and renders the app nav + footer around the routes.
@@ -213,12 +221,13 @@ export default function App() {
       {/* Application area (onboarding-gated) */}
       <Route element={<AppLayout />}>
         <Route path="/app" element={<HomePage />} />
-        <Route path="/facturas" element={<InvoiceList docType="factura" />} />
-        <Route path="/facturas/nueva" element={<InvoiceForm docType="factura" />} />
-        <Route path="/facturas/editar/:id" element={<InvoiceForm docType="factura" />} />
-        <Route path="/presupuestos" element={<InvoiceList docType="presupuesto" />} />
-        <Route path="/presupuestos/nuevo" element={<InvoiceForm docType="presupuesto" />} />
-        <Route path="/presupuestos/editar/:id" element={<InvoiceForm docType="presupuesto" />} />
+        {/* key por tipo: la lista de facturas y la de presupuestos son instancias distintas */}
+        <Route path="/facturas" element={<InvoiceList key="factura" docType="factura" />} />
+        <Route path="/facturas/nueva" element={<DocForm docType="factura" />} />
+        <Route path="/facturas/editar/:id" element={<DocForm docType="factura" />} />
+        <Route path="/presupuestos" element={<InvoiceList key="presupuesto" docType="presupuesto" />} />
+        <Route path="/presupuestos/nuevo" element={<DocForm docType="presupuesto" />} />
+        <Route path="/presupuestos/editar/:id" element={<DocForm docType="presupuesto" />} />
         <Route path="/clientes" element={<ClientManager />} />
         <Route path="/impuestos" element={<TaxSummary />} />
         <Route path="/ajustes" element={<EmisorSettings />} />
