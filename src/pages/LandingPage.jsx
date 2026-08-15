@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import {
   FileText, ClipboardList, ShieldCheck, Zap, FolderSync,
-  ArrowRight, Check, Lock, FileDown, CircleDollarSign, MonitorSmartphone
+  ArrowRight, Check, Lock, FileDown, CircleDollarSign, MonitorSmartphone, Sparkles
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -64,10 +64,14 @@ export default function LandingPage() {
           <button onClick={goApp} className="w-full sm:w-auto px-7 py-3.5 bg-accent hover:bg-accent-light text-white rounded-xl font-semibold transition flex items-center justify-center gap-2 shadow-sm">
             Empezar gratis <ArrowRight size={18} />
           </button>
-          <a href="#como-funciona" className="w-full sm:w-auto px-7 py-3.5 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition text-center">
-            Ver cómo funciona
-          </a>
+          <Link to="/demo" className="w-full sm:w-auto px-7 py-3.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+            <Sparkles size={17} /> Ver la demo con datos de ejemplo
+          </Link>
         </div>
+        <p className="mt-3 text-xs text-gray-500">
+          La demo carga una empresa ficticia con sus presupuestos y facturas para que explores todo sin rellenar nada.
+          {' '}<a href="#como-funciona" className="underline hover:text-gray-700">Ver cómo funciona</a>.
+        </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-500">
           <span className="flex items-center gap-1.5"><Check size={15} className="text-emerald-500" /> Sin tarjeta</span>
           <span className="flex items-center gap-1.5"><Check size={15} className="text-emerald-500" /> Sin email</span>
@@ -292,9 +296,14 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto px-4 text-center text-white">
           <h2 className="text-3xl font-extrabold">Crea tu primer presupuesto gratis hoy</h2>
           <p className="mt-3 text-blue-100">Sin registro. Sin tarjeta. Sin que tus datos salgan de tu dispositivo.</p>
-          <button onClick={goApp} className="mt-7 px-8 py-3.5 bg-white text-accent rounded-xl font-bold hover:bg-blue-50 transition inline-flex items-center gap-2">
-            Crear mi primer presupuesto <ArrowRight size={18} />
-          </button>
+          <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button onClick={goApp} className="px-8 py-3.5 bg-white text-accent rounded-xl font-bold hover:bg-blue-50 transition inline-flex items-center gap-2">
+              Crear mi primer presupuesto <ArrowRight size={18} />
+            </button>
+            <Link to="/demo" className="px-8 py-3.5 bg-white/15 hover:bg-white/25 text-white border border-white/30 rounded-xl font-semibold transition inline-flex items-center gap-2">
+              <Sparkles size={17} /> Probar la demo
+            </Link>
+          </div>
         </div>
       </section>
 

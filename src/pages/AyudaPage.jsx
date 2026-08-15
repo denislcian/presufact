@@ -79,6 +79,7 @@ function TicketForm() {
 }
 
 const FAQS = [
+  { q: '¿Puedo probar la app sin meter mis datos?', a: 'Sí: entra en presufactu.vercel.app/demo y se cargará una empresa ficticia con presupuestos, facturas y clientes de ejemplo. Verás una barra violeta arriba mientras estés en la demo; con "Borrar demo y empezar de cero" se elimina todo y la app queda vacía para tus datos reales. Si ya tienes documentos guardados, la demo no los toca sin preguntarte.' },
   { q: '¿Dónde están guardados mis datos?', a: 'En tu propio dispositivo (en el almacenamiento del navegador) y en las copias de seguridad que configures. No hay ninguna cuenta ni servidor: si abres la app en otro ordenador o navegador, empezará vacía. Para llevarte los datos usa Ajustes → Descargar backup, e impórtalo en el otro dispositivo.' },
   { q: 'He perdido mis facturas, ¿puedo recuperarlas?', a: 'Sí, casi siempre. La app guarda copias automáticas: si detecta la base vacía con un backup disponible te ofrecerá restaurarlo al entrar. También puedes ir a Ajustes → Historial de backups y restaurar cualquiera, o importar el archivo JSON de tu carpeta de backup (busca "presufact-backup" en la carpeta que elegiste).' },
   { q: '¿Cómo hago que las copias se suban a mi nube?', a: 'En Ajustes → Backup automático, elige como carpeta una que esté dentro de OneDrive, Google Drive o Dropbox. Tu programa de sincronización subirá cada copia a tu nube automáticamente. En el móvil, usa "Enviar backup a tu nube" (abre el menú de compartir).' },

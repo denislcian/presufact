@@ -4,7 +4,7 @@
 
 **Presupuestos y facturas profesionales en PDF — gratis, sin registro y 100 % local.**
 
-🔗 **Pruébalo:** [presufactu.vercel.app](https://presufactu.vercel.app)
+🔗 **Pruébalo:** [presufactu.vercel.app](https://presufactu.vercel.app) · 🧪 **Demo con datos de ejemplo en un clic:** [presufactu.vercel.app/demo](https://presufactu.vercel.app/demo)
 
 Presufact es una aplicación web para autónomos y pequeños negocios en España: crea presupuestos con firma de aceptación del cliente y borradores de factura con IVA e IRPF, sin crear cuenta y sin que tus datos salgan de tu dispositivo. No hay servidor de datos: todo vive en tu navegador.
 
@@ -19,7 +19,7 @@ Presufact es una aplicación web para autónomos y pequeños negocios en España
 - 📤 **Facturae XML** — exportación al formato de factura electrónica española (firma con AutoFirma a cargo del usuario).
 - 📱 **PWA** — instalable en escritorio y móvil; funciona completamente sin conexión.
 - 💾 **Copias de seguridad** — automáticas, en la carpeta local que elijas (incluida tu propia nube: OneDrive, Drive, Dropbox) e historial restaurable.
-- 🧪 **Modo demo** — datos de ejemplo con un clic para probar la app sin rellenar nada.
+- 🧪 **Modo demo** — [/demo](https://presufactu.vercel.app/demo) carga una empresa ficticia con 11 facturas, 6 presupuestos (dos firmados por el cliente), 7 clientes y dos ejercicios fiscales; se borra con un clic y nunca pisa datos reales.
 
 ## Privacidad y seguridad
 

@@ -1,8 +1,10 @@
 import { db, saveDocument } from '../db';
+import { LOGO_DEMO, FIRMA_DEMO } from './demoAssets';
 
 // Datos de ejemplo realistas para ensenar Presufact (modo demo).
-// Cubren todos los rincones: estados variados, IRPF, multi-IVA, deduccion,
-// proforma, vencida, presupuestos en todos los estados y varios trimestres.
+// Cubren todos los rincones: presupuestos en todos los estados (uno firmado
+// por el cliente), facturas con IRPF, multi-IVA, deduccion, proforma y vencida,
+// varios trimestres, ejercicio anterior y una libreta de clientes completa.
 
 const EMISOR_DEMO = {
   nombre: 'REFORMAS EL NORTE S.L.',
@@ -12,29 +14,47 @@ const EMISOR_DEMO = {
   cp: '33393', ciudad: 'Gijón', provincia: 'Asturias',
   telefono: '985 123 456', email: 'hola@reformaselnorte.es', web: 'www.reformaselnorte.es',
   iban: 'ES02 0049 3586 1921 1403 5991',
-  logo: null, colorMarca: '#0f766e'
+  logo: LOGO_DEMO, colorMarca: '#0f766e'
 };
 
 const CLIENTES = [
-  { nombre: 'COMUNIDAD DE PROPIETARIOS AVDA. DEL LLANO 23', nif: 'H33112233', direccion: 'Avda. del Llano 23', cp: '33209', ciudad: 'Gijón', provincia: 'Asturias', email: 'presidente@cpllano23.es' },
+  { nombre: 'COMUNIDAD DE PROPIETARIOS AVDA. DEL LLANO 23', nif: 'H33112233', direccion: 'Avda. del Llano 23', cp: '33209', ciudad: 'Gijón', provincia: 'Asturias', email: 'presidente@cpllano23.es', telefono: '985 151 617' },
   { nombre: 'CONSTRUCCIONES COVADONGA S.L.', nif: 'B33998877', direccion: 'C/ Marqués de San Esteban 10', cp: '33206', ciudad: 'Gijón', provincia: 'Asturias', email: 'obras@covadonga.es', telefono: '985 333 444' },
-  { nombre: 'CAFETERÍA EL MUELLE', nif: 'B74556677', direccion: 'Puerto Deportivo, Local 4', cp: '33201', ciudad: 'Gijón', provincia: 'Asturias', email: 'info@elmuelle.es' },
-  { nombre: 'MARÍA FERNÁNDEZ GARCÍA', nif: '10887766Z', direccion: 'C/ Uría 45, 3.º D', cp: '33202', ciudad: 'Gijón', provincia: 'Asturias' },
-  { nombre: 'INMOBILIARIA PRINCIPADO S.A.', nif: 'A33667788', direccion: 'Plaza del Ayuntamiento 2', cp: '33001', ciudad: 'Oviedo', provincia: 'Asturias', email: 'admin@inmoprincipado.es' },
+  { nombre: 'CAFETERÍA EL MUELLE', nif: 'B74556677', direccion: 'Puerto Deportivo, Local 4', cp: '33201', ciudad: 'Gijón', provincia: 'Asturias', email: 'info@elmuelle.es', telefono: '684 210 903' },
+  { nombre: 'MARÍA FERNÁNDEZ GARCÍA', nif: '10887766Z', direccion: 'C/ Uría 45, 3.º D', cp: '33202', ciudad: 'Gijón', provincia: 'Asturias', telefono: '622 334 455' },
+  { nombre: 'INMOBILIARIA PRINCIPADO S.A.', nif: 'A33667788', direccion: 'Plaza del Ayuntamiento 2', cp: '33001', ciudad: 'Oviedo', provincia: 'Asturias', email: 'admin@inmoprincipado.es', telefono: '985 202 121' },
+  { nombre: 'PANADERÍA LA ESPIGA C.B.', nif: 'E33778899', direccion: 'C/ Cabrales 61', cp: '33201', ciudad: 'Gijón', provincia: 'Asturias', email: 'laespiga@gmail.com', telefono: '985 090 807' },
+  { nombre: 'JAVIER SUÁREZ ÁLVAREZ', nif: '71234567L', direccion: 'Camín de la Iglesia 8', cp: '33420', ciudad: 'Lugones', provincia: 'Asturias', telefono: '651 998 877' },
 ];
 
+const hoy = () => new Date().toISOString().split('T')[0];
 const diasAtras = (n) => new Date(Date.now() - n * 86400000).toISOString().split('T')[0];
+
+const CONDICIONES = '- Validez: Este presupuesto tiene una validez de 30 dias desde su fecha de emision.\n\n- Forma de pago: 40% a la aceptacion, 60% a la finalizacion de los trabajos.\n\n- Los precios indicados no incluyen IVA salvo que se especifique lo contrario.\n\n- Aceptacion: La firma o aceptacion de este documento supone la conformidad con todas las condiciones aqui descritas.';
 
 export async function seedDemoData() {
   const year = new Date().getFullYear();
-  const f = (n) => `${year}-${String(n).padStart(4, '0')}`;
+  const f = (n, y = year) => `${y}-${String(n).padStart(4, '0')}`;
   const base = (cliIdx) => ({
     documentType: 'Factura', emisor: { ...EMISOR_DEMO }, cliente: { ...CLIENTES[cliIdx] },
     formaPago: 'TRANSFERENCIA BANCARIA A LA RECEPCION DE LA FACTURA',
     deducciones: [], observaciones: `Número de cuenta: ${EMISOR_DEMO.iban}`, vencimientos: []
   });
 
-  // ---- FACTURAS ----
+  // ---- FACTURAS DEL EJERCICIO ANTERIOR (para el selector de ano de Impuestos) ----
+  await saveDocument('factura', { ...base(4), invoiceNumber: f(41, year - 1), date: `${year - 1}-11-18`, estado: 'cobrada',
+    descripcionTrabajo: 'Mantenimiento trimestral de cartera de pisos (T4).',
+    lineas: [{ articulo: 'Mantenimiento', descripcion: 'Bolsa de horas de mantenimiento y pequeñas reparaciones', cantidad: '28', precioUd: '38', unidad: 'h' }],
+    iva: { tipo: 21, irpf: 15 } });
+
+  await saveDocument('factura', { ...base(5), invoiceNumber: f(42, year - 1), date: `${year - 1}-12-09`, estado: 'cobrada',
+    descripcionTrabajo: 'Reforma de obrador: solado y alicatado.',
+    lineas: [
+      { articulo: 'Solado', descripcion: 'Gres antideslizante C3 en obrador', cantidad: '42', precioUd: '39', unidad: 'm2' },
+      { articulo: 'Alicatado', descripcion: 'Alicatado blanco 20x60 hasta 2 m', cantidad: '56', precioUd: '31', unidad: 'm2' }
+    ], iva: { tipo: 21 } });
+
+  // ---- FACTURAS DEL EJERCICIO ACTUAL ----
   await saveDocument('factura', { ...base(0), invoiceNumber: f(1), date: `${year}-01-20`, estado: 'cobrada',
     descripcionTrabajo: 'Reparación de humedades en portal y garaje.',
     lineas: [
@@ -76,14 +96,18 @@ export async function seedDemoData() {
 
   await saveDocument('factura', { ...base(1), invoiceNumber: f(7), date: diasAtras(12), estado: 'enviada',
     descripcionTrabajo: 'Certificación n.º 2 — obra Avda. de la Costa.',
-    lineas: [
-      { articulo: 'Albañilería', descripcion: 'Levante de fábrica de ladrillo en cerramientos', cantidad: '210', precioUd: '31', unidad: 'm2' },
-      { articulo: 'Anticipo', descripcion: '', cantidad: '', precioUd: '', unidad: 'ud' }
-    ].slice(0, 1),
+    lineas: [{ articulo: 'Albañilería', descripcion: 'Levante de fábrica de ladrillo en cerramientos', cantidad: '210', precioUd: '31', unidad: 'm2' }],
     deducciones: [{ manual: true, descripcion: `Anticipo recibido (factura ${f(2)})`, importe: '1.200,00' }],
     iva: { tipo: 21, inversionSujetoPasivo: true } });
 
-  await saveDocument('factura', { ...base(2), invoiceNumber: f(8), date: diasAtras(5), estado: 'pendiente', esProforma: true,
+  await saveDocument('factura', { ...base(5), invoiceNumber: f(8), date: diasAtras(9), estado: 'aceptada',
+    descripcionTrabajo: 'Sustitución de puerta de entrada y reja del escaparate.',
+    lineas: [
+      { articulo: 'Carpintería', descripcion: 'Puerta de aluminio con vidrio de seguridad 6+6', cantidad: '1', precioUd: '1380', unidad: 'ud' },
+      { articulo: 'Cerrajería', descripcion: 'Reja enrollable microperforada motorizada', cantidad: '1', precioUd: '1950', unidad: 'ud' }
+    ], iva: { tipo: 21 } });
+
+  await saveDocument('factura', { ...base(2), invoiceNumber: f(9), date: diasAtras(5), estado: 'pendiente', esProforma: true,
     descripcionTrabajo: 'PROFORMA — ampliación de terraza cubierta.',
     lineas: [{ articulo: 'Estructura', descripcion: 'Pérgola bioclimática 4x3 con cerramiento cortavientos', cantidad: '1', precioUd: '6800', unidad: 'ud' }],
     iva: { tipo: 21 } });
@@ -92,16 +116,18 @@ export async function seedDemoData() {
   const basePresu = (cliIdx) => ({
     documentType: 'Presupuesto', emisor: { ...EMISOR_DEMO }, cliente: { ...CLIENTES[cliIdx] },
     deducciones: [], observaciones: '', vencimientos: [], validez: '30 dias',
-    condicionesComerciales: '- Validez: Este presupuesto tiene una validez de 30 dias desde su fecha de emision.\n\n- Forma de pago: 40% a la aceptacion, 60% a la finalizacion de los trabajos.\n\n- Los precios indicados no incluyen IVA salvo que se especifique lo contrario.\n\n- Aceptacion: La firma o aceptacion de este documento supone la conformidad con todas las condiciones aqui descritas.'
+    condicionesComerciales: CONDICIONES
   });
   const p = (n) => `P-${year}-${String(n).padStart(3, '0')}`;
 
+  // Aceptado Y FIRMADO por el cliente en pantalla: el diferenciador
   await saveDocument('presupuesto', { ...basePresu(3), invoiceNumber: p(1), date: diasAtras(40), estado: 'aceptado',
     descripcionObra: 'Reforma de baño principal (aceptado y facturado).',
-    plazoEjecucion: '2 semanas',
+    plazoEjecucion: '2 semanas', firmaCliente: FIRMA_DEMO,
     lineas: [
       { articulo: 'Demolición', descripcion: 'Retirada de sanitarios y alicatado antiguo', cantidad: '1', precioUd: '480', unidad: 'ud' },
-      { articulo: 'Alicatado', descripcion: 'Alicatado porcelánico 30x60', cantidad: '24', precioUd: '42', unidad: 'm2' }
+      { articulo: 'Alicatado', descripcion: 'Alicatado porcelánico 30x60', cantidad: '24', precioUd: '42', unidad: 'm2' },
+      { articulo: 'Sanitarios', descripcion: 'Suministro y montaje de plato de ducha, inodoro y lavabo', cantidad: '1', precioUd: '1150', unidad: 'ud', iva: 10 }
     ], iva: { tipo: 21 } });
 
   await saveDocument('presupuesto', { ...basePresu(4), invoiceNumber: p(2), date: diasAtras(15), estado: 'pendiente',
@@ -123,6 +149,25 @@ export async function seedDemoData() {
     descripcionObra: 'Cerramiento de terraza (rechazado por licencia).',
     lineas: [{ articulo: 'Cerramiento', descripcion: 'Cerramiento de aluminio con rotura de puente térmico', cantidad: '12', precioUd: '385', unidad: 'm2' }],
     iva: { tipo: 21 } });
+
+  // Firmado tambien: pequeno trabajo de fontaneria para un particular
+  await saveDocument('presupuesto', { ...basePresu(6), invoiceNumber: p(5), date: diasAtras(3), estado: 'aceptado',
+    descripcionObra: 'Sustitución de caldera y radiadores del salón.',
+    plazoEjecucion: '2 días', firmaCliente: FIRMA_DEMO,
+    lineas: [
+      { articulo: 'Calefacción', descripcion: 'Caldera de condensación 24 kW, suministro e instalación', cantidad: '1', precioUd: '1890', unidad: 'ud', iva: 10 },
+      { articulo: 'Radiadores', descripcion: 'Radiador de aluminio 8 elementos con llave termostática', cantidad: '2', precioUd: '215', unidad: 'ud', iva: 10 },
+      { articulo: 'Mano de obra', descripcion: 'Desmontaje, montaje y puesta en marcha', cantidad: '9', precioUd: '42', unidad: 'h' }
+    ], iva: { tipo: 21 } });
+
+  await saveDocument('presupuesto', { ...basePresu(5), invoiceNumber: p(6), date: hoy(), estado: 'pendiente',
+    descripcionObra: 'Instalación eléctrica del nuevo obrador.',
+    plazoEjecucion: '1 semana',
+    lineas: [
+      { articulo: 'Cuadro', descripcion: 'Cuadro eléctrico trifásico con protecciones', cantidad: '1', precioUd: '780', unidad: 'ud' },
+      { articulo: 'Puntos', descripcion: 'Puntos de luz y tomas de fuerza para hornos', cantidad: '14', precioUd: '68', unidad: 'ud' },
+      { articulo: 'Boletín', descripcion: 'Certificado de instalación eléctrica (boletín)', cantidad: '1', precioUd: '150', unidad: 'ud' }
+    ], iva: { tipo: 21 } });
 
   // ---- EMISOR + FLAG DEMO ----
   await db.settings.put({ key: 'emisor', value: EMISOR_DEMO });

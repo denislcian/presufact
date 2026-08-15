@@ -11,6 +11,7 @@ import ComparativaPage from './pages/ComparativaPage';
 import PrivacidadPage from './pages/PrivacidadPage';
 import AyudaPage from './pages/AyudaPage';
 import AdminPage from './pages/AdminPage';
+import DemoPage from './pages/DemoPage';
 import HomePage from './components/HomePage';
 import InvoiceList from './components/InvoiceList';
 import InvoiceForm from './components/InvoiceForm';
@@ -204,6 +205,8 @@ export default function App() {
       <Route path="/comparativa" element={<ComparativaPage />} />
       <Route path="/privacidad" element={<PrivacidadPage />} />
       <Route path="/ayuda" element={<AyudaPage />} />
+      {/* Demo con datos de ejemplo en un clic */}
+      <Route path="/demo" element={<DemoPage />} />
       {/* Panel de administracion: sin enlaces publicos, noindex, protegido por token en el servidor */}
       <Route path="/admin" element={<AdminPage />} />
 
